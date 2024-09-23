@@ -1,0 +1,44 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/name: kube-prometheus
+    app.kubernetes.io/part-of: kube-prometheus
+    prometheus: k8s
+    role: alert-rules
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-general.rules
+  namespace: monitoring
+spec:
+  groups:
+  - name: general.rules
+    rules:
+    - alert: TargetDown
+      annotations:
+        description: '在 {{ $labels.namespace }} 命名空间中，{{ $labels.job }}/{{ $labels.service }} 的目标有 {{ printf "%.4g" $value }}% 无法访问。'
+        runbook_url: 'https://runbooks.prometheus-operator.dev/runbooks/general/targetdown'
+        summary: '一个或多个目标无法访问。'
+      expr: 100 * (count(up == 0) BY (job, namespace, service) / count(up) BY (job, namespace, service)) > 10
+      for: 10m
+      labels:
+        severity: warning
+    - alert: Watchdog
+      annotations:
+        description: |
+          这是一个用来确保整个告警管道正常工作的告警。这个告警总是被触发，因此它应该总是在 Alertmanager 中触发，并且总是向接收器发送。有多种通知机制的集成会在该告警未触发时发送通知。例如，在 PagerDuty 中的“DeadMansSnitch”集成。
+        runbook_url: 'https://runbooks.prometheus-operator.dev/runbooks/general/watchdog'
+        summary: '一个应该始终触发的告警，以证明 Alertmanager 工作正常。'
+      expr: vector(1)
+      labels:
+        severity: none
+#    - alert: InfoInhibitor
+#      annotations:
+#        description: |
+#          这是一个用来抑制信息级别告警的告警。
+#          当信息级别的告警出现时，这个告警会触发，并在相同命名空间下触发严重性为“warning”或“critical”的其他告警时停止触发。
+#        runbook_url: 'https://runbooks.prometheus-operator.dev/runbooks/general/infoinhibitor'
+#        summary: '信息级别告警抑制。'
+#      expr: ALERTS{severity="info"} unless on(namespace) ALERTS{severity="warning"} or ALERTS{severity="critical"}
+#      for: 10m
+#      labels:
+#        severity: none

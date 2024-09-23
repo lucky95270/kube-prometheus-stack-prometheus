@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webhook-deploy
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: webhook
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        k8s-app: webhook
+    spec:
+      containers:
+      - env:
+        - name: PA_LOGIN_USER
+          value: alertuser
+        - name: PA_LOGIN_PASSWORD
+          value: "123456"
+        - name: PA_TITLE
+          value: prometheusAlert
+        - name: PA_OPEN_FEISHU
+          value: "1"
+        - name: PA_OPEN_DINGDING
+          value: "0"
+        - name: PA_OPEN_WEIXIN
+          value: "0"
+        image: registry.cn-hangzhou.aliyuncs.com/tianxiang_app/prometheus-alert:latest
+        imagePullPolicy: IfNotPresent
+        name: webhook
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /app/db
+          name: db-data
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: db-data
+        persistentVolumeClaim:
+          claimName: webkook-db-data

@@ -1,0 +1,38 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/name: kube-prometheus
+    app.kubernetes.io/part-of: kube-prometheus
+    prometheus: k8s
+    role: alert-rules
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-kubernetes-system
+  namespace: monitoring
+spec:
+  groups:
+  - name: kubernetes-system
+    rules:
+    - alert: KubeVersionMismatch
+      annotations:
+        description: 运行中的 Kubernetes 组件有 {{ $value }} 个不同的语义版本。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeversionmismatch 
+        summary: Kubernetes 组件运行着不同的语义版本。
+      expr: count(count by (git_version) (label_replace(kubernetes_build_info{job!~"kube-dns|coredns"},"git_version","$1","git_version","(v[0-9]*.[0-9]*).*")))
+        > 1
+      for: 15m
+      labels:
+        severity: warning
+    - alert: KubeClientErrors
+      annotations:
+        description: Kubernetes API 服务器客户端 '{{ $labels.job }}/{{ $labels.instance }}' 正在经历 {{ $value | humanizePercentage }} 的错误率。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeclienterrors 
+        summary: Kubernetes API 服务器客户端正在经历错误。
+      expr: |-
+        (sum(rate(rest_client_requests_total{code=~"5.."}[5m])) by (cluster, instance, job, namespace)
+          /
+        sum(rate(rest_client_requests_total[5m])) by (cluster, instance, job, namespace))
+        > 0.01
+      for: 15m
+      labels:
+        severity: warning

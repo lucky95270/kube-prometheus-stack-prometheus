@@ -1,0 +1,245 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/name: kube-prometheus
+    app.kubernetes.io/part-of: kube-prometheus
+    prometheus: k8s
+    role: alert-rules
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-node-exporter
+  namespace: monitoring
+spec:
+  groups:
+  - name: node-exporter
+    rules:
+    - alert: NodeFilesystemSpaceFillingUp
+      annotations:
+        description: 在 {{ $labels.instance }} 上的 {{ $labels.device }} 文件系统中只剩下 {{ printf "%.2f" $value }}% 的可用空间，并且正在迅速填满。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemspacefillingup 
+        summary: 预测文件系统在未来24小时内将耗尽空间。
+      expr: |-
+        (
+          node_filesystem_avail_bytes{job="node-exporter",fstype!=""} / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 15
+        and
+          predict_linear(node_filesystem_avail_bytes{job="node-exporter",fstype!=""}[6h], 24*60*60) < 0
+        and
+          node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
+        )
+      for: 1h
+      labels:
+        severity: warning
+    - alert: NodeFilesystemSpaceFillingUp
+      annotations:
+        description: 在 {{ $labels.instance }} 上的 {{ $labels.device }} 文件系统中只剩下 {{ printf "%.2f" $value }}% 的可用空间，并且正在迅速填满。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemspacefillingup 
+        summary: 预测文件系统在未来4小时内将耗尽空间。
+      expr: |-
+        (
+          node_filesystem_avail_bytes{job="node-exporter",fstype!=""} / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 10
+        and
+          predict_linear(node_filesystem_avail_bytes{job="node-exporter",fstype!=""}[6h], 4*60*60) < 0
+        and
+          node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
+        )
+      for: 1h
+      labels:
+        severity: critical
+    - alert: NodeFilesystemAlmostOutOfSpace
+      annotations:
+        description: 在 {{ $labels.instance }} 上的 {{ $labels.device }} 文件系统中只剩下 {{ printf "%.2f" $value }}% 的可用空间。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemalmostoutofspace 
+        summary: 文件系统只剩下不到5%的空间。
+      expr: |-
+        (
+          node_filesystem_avail_bytes{job="node-exporter",fstype!=""} / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 5
+        and
+          node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
+        )
+      for: 30m
+      labels:
+        severity: warning
+    - alert: NodeFilesystemAlmostOutOfSpace
+      annotations:
+        description: 在 {{ $labels.instance }} 上的 {{ $labels.device }} 文件系统中只剩下 {{ printf "%.2f" $value }}% 的可用空间。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemalmostoutofspace 
+        summary: 文件系统只剩下不到3%的空间。
+      expr: |-
+        (
+          node_filesystem_avail_bytes{job="node-exporter",fstype!=""} / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 3
+        and
+          node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
+        )
+      for: 30m
+      labels:
+        severity: critical
+    - alert: NodeFilesystemFilesFillingUp
+      annotations:
+        description: 在 {{ $labels.instance }} 上的 {{ $labels.device }} 文件系统中只剩下 {{ printf "%.2f" $value }}% 的可用inode，并且正在迅速填满。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemfilesfillingup 
+        summary: 预测文件系统在未来24小时内将耗尽inode。
+      expr: |-
+        (
+          node_filesystem_files_free{job="node-exporter",fstype!=""} / node_filesystem_files{job="node-exporter",fstype!=""} * 100 < 40
+        and
+          predict_linear(node_filesystem_files_free{job="node-exporter",fstype!=""}[6h], 24*60*60) < 0
+        and
+          node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
+        )
+      for: 1h
+      labels:
+        severity: warning
+    - alert: NodeFilesystemFilesFillingUp
+      annotations:
+        description: 在 {{ $labels.instance }} 上的 {{ $labels.device }} 文件系统中只剩下 {{ printf "%.2f" $value }}% 的可用inode，并且正在迅速填满。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemfilesfillingup 
+        summary: 预测文件系统在未来4小时内将耗尽inode。
+      expr: |-
+        (
+          node_filesystem_files_free{job="node-exporter",fstype!=""} / node_filesystem_files{job="node-exporter",fstype!=""} * 100 < 20
+        and
+          predict_linear(node_filesystem_files_free{job="node-exporter",fstype!=""}[6h], 4*60*60) < 0
+        and
+          node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
+        )
+      for: 1h
+      labels:
+        severity: critical
+    - alert: NodeFilesystemAlmostOutOfFiles
+      annotations:
+        description: 在 {{ $labels.instance }} 上的 {{ $labels.device }} 文件系统中只剩下 {{ printf "%.2f" $value }}% 的可用inode。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemalmostoutoffiles 
+        summary: 文件系统只剩下不到5%的inode。
+      expr: |-
+        (
+          node_filesystem_files_free{job="node-exporter",fstype!=""} / node_filesystem_files{job="node-exporter",fstype!=""} * 100 < 5
+        and
+          node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
+        )
+      for: 1h
+      labels:
+        severity: warning
+    - alert: NodeFilesystemAlmostOutOfFiles
+      annotations:
+        description: 在 {{ $labels.instance }} 上的 {{ $labels.device }} 文件系统中只剩下 {{ printf "%.2f" $value }}% 的可用inode。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemalmostoutoffiles 
+        summary: 文件系统只剩下不到3%的inode。
+      expr: |-
+        (
+          node_filesystem_files_free{job="node-exporter",fstype!=""} / node_filesystem_files{job="node-exporter",fstype!=""} * 100 < 3
+        and
+          node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
+        )
+      for: 1h
+      labels:
+        severity: critical
+    - alert: NodeNetworkReceiveErrs
+      annotations:
+        description: '{{ $labels.instance }} 的 {{ $labels.device }} 接口在过去两分钟内遇到了 {{ printf "%.0f" $value }} 次接收错误。'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodenetworkreceiveerrs 
+        summary: 网络接口报告了许多接收错误。
+      expr: rate(node_network_receive_errs_total[2m]) / rate(node_network_receive_packets_total[2m])
+        > 0.01
+      for: 1h
+      labels:
+        severity: warning
+    - alert: NodeNetworkTransmitErrs
+      annotations:
+        description: '{{ $labels.instance }} 的 {{ $labels.device }} 接口在过去两分钟内遇到了 {{ printf "%.0f" $value }} 次传输错误。'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodenetworktransmiterrs 
+        summary: 网络接口报告了许多传输错误。
+      expr: rate(node_network_transmit_errs_total[2m]) / rate(node_network_transmit_packets_total[2m])
+        > 0.01
+      for: 1h
+      labels:
+        severity: warning
+    - alert: NodeHighNumberConntrackEntriesUsed
+      annotations:
+        description: '{{ $value | humanizePercentage }} 的conntrack条目已被使用。'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodehighnumberconntrackentriesused 
+        summary: conntrack的数量接近限制。
+      expr: (node_nf_conntrack_entries / node_nf_conntrack_entries_limit) > 0.75
+      labels:
+        severity: warning
+    - alert: NodeTextFileCollectorScrapeError
+      annotations:
+        description: 'Node Exporter 文本文件收集器未能抓取数据'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodetextfilecollectorscrapeerror 
+        summary: Node Exporter 文本文件收集器抓取失败。
+      expr: node_textfile_scrape_error{job="node-exporter"} == 1
+      labels:
+        severity: warning
+    - alert: NodeClockSkewDetected
+      annotations:
+        description: '{{ $labels.instance }} 的时钟与标准时间偏差超过300秒。确保此主机上正确配置了NTP。'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodeclockskewdetected 
+        summary: 检测到时钟偏差。
+      expr: |-
+        (
+          node_timex_offset_seconds > 0.05
+        and
+          deriv(node_timex_offset_seconds[5m]) >= 0
+        )
+        or
+        (
+          node_timex_offset_seconds < -0.05
+          and
+          deriv(node_timex_offset_seconds[5m]) <= 0
+        )
+      for: 10m
+      labels:
+        severity: warning
+    - alert: NodeClockNotSynchronising
+      annotations:
+        description: '{{ $labels.instance }} 的时钟未同步。确保此主机上配置了NTP。'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodeclocknotsynchronising 
+        summary: 时钟未同步。
+      expr: |-
+        min_over_time(node_timex_sync_status[5m]) == 0
+        and
+        node_timex_maxerror_seconds >= 16
+      for: 10m
+      labels:
+        severity: warning
+    - alert: NodeRAIDDegraded
+      annotations:
+        description: '{{ $labels.instance }} 上的 RAID 数组 {{ $labels.device }} 由于一个或多个磁盘故障处于降级状态。备用驱动器数量不足以自动修复问题。'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/noderaiddegraded 
+        summary: RAID 数组已降级
+      expr: node_md_disks_required - ignoring (state) (node_md_disks{state="active"})
+        > 0
+      for: 15m
+      labels:
+        severity: critical
+    - alert: NodeRAIDDiskFailure
+      annotations:
+        description: '{{ $labels.instance }} 上的 RAID 数组至少有一个设备发生故障。需要关注 {{ $labels.device }} 数组，可能需要更换磁盘。'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/noderaiddiskfailure 
+        summary: RAID 数组中的设备失败
+      expr: node_md_disks{state="failed"} > 0
+      labels:
+        severity: warning
+    - alert: NodeFileDescriptorLimit
+      annotations:
+        description: '{{ $labels.instance }} 的文件描述符限制当前为 {{ printf "%.2f" $value }}%。'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefiledescriptorlimit 
+        summary: 内核预计很快将耗尽文件描述符限制。
+      expr: |-
+        (
+          node_filefd_allocated{job="node-exporter"} * 100 / node_filefd_maximum{job="node-exporter"} > 70
+        )
+      for: 15m
+      labels:
+        severity: warning
+    - alert: NodeFileDescriptorLimit
+      annotations:
+        description: '{{ $labels.instance }} 的文件描述符限制当前为 {{ printf "%.2f" $value }}%。'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefiledescriptorlimit 
+        summary: 内核预计很快将耗尽文件描述符限制。
+      expr: |-
+        (
+          node_filefd_allocated{job="node-exporter"} * 100 / node_filefd_maximum{job="node-exporter"} > 90
+        )
+      for: 15m
+      labels:
+        severity: critical

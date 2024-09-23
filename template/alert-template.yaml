@@ -1,0 +1,115 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alert-template
+  namespace: monitoring
+data:
+  email.tmpl: |
+    {{ define "email.to.html" }}
+    {{- if gt (len .Alerts.Firing) 0 -}}
+    {{ range .Alerts }}
+    =========start==========<br>
+    告警程序: prometheus_alert <br>
+    告警级别: {{ .Labels.severity }} <br>
+    告警类型: {{ .Labels.alertname }} <br>
+    告警主机: {{ .Labels.instance }} <br>
+    告警主题: 
+    {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.message }}{{ .Annotations.message }}{{ else }}无摘要信息{{ end }}<br>
+    告警详情: 
+    {{ if .Annotations.description }}{{ .Annotations.description }}{{ else if .Annotations.message }}{{ .Annotations.message }}{{ else }}无详细描述{{ end }}<br>
+    触发时间: {{ (.StartsAt.Add 28800e9).Format "2006-01-02 15:04:05" }} <br>
+    {{- if gt (len .Labels.namespace) 0 }}
+    命名空间: {{ .Labels.namespace }} <br>
+    {{- end }}
+    {{- if gt (len .Labels.node) 0 }}
+    节点信息: {{ .Labels.node }} <br>
+    {{- end }}
+    {{- if gt (len .Labels.pod) 0 }}
+    实例名称: {{ .Labels.pod }} <br>
+    {{- end }}
+    =========end==========<br>
+    {{ end }}{{ end -}}
+    
+    {{- if gt (len .Alerts.Resolved) 0 -}}
+    {{ range .Alerts }}
+    =========start==========<br>
+    告警程序: prometheus_alert <br>
+    告警级别: {{ .Labels.severity }} <br>
+    告警类型: {{ .Labels.alertname }} <br>
+    告警主机: {{ .Labels.instance }} <br>
+    告警主题: 
+    {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else if .Annotations.message }}{{ .Annotations.message }}{{ else }}无摘要信息{{ end }}<br>
+    告警详情: 
+    {{ if .Annotations.description }}{{ .Annotations.description }}{{ else if .Annotations.message }}{{ .Annotations.message }}{{ else }}无详细描述{{ end }}<br>
+    触发时间: {{ (.StartsAt.Add 28800e9).Format "2006-01-02 15:04:05" }} <br>
+    恢复时间: {{ (.EndsAt.Add 28800e9).Format "2006-01-02 15:04:05" }} <br>
+    {{- if gt (len .Labels.namespace) 0 }}
+    命名空间: {{ .Labels.namespace }} <br>
+    {{- end }}
+    {{- if gt (len .Labels.node) 0 }}
+    节点信息: {{ .Labels.node }} <br>
+    {{- end }}
+    {{- if gt (len .Labels.pod) 0 }}
+    实例名称: {{ .Labels.pod }} <br>
+    {{- end }}
+    =========end==========<br>
+    {{ end }}{{ end -}}
+    {{- end }}
+
+  wechat.tmpl: |
+    {{ define "wechat.default.message" }}
+    {{- if gt (len .Alerts.Firing) 0 -}}
+    {{- range $index, $alert := .Alerts -}}
+    {{- if eq $index 0 }}
+    ==========异常告警==========
+    告警类型: {{ $alert.Labels.alertname }}
+    告警级别: {{ $alert.Labels.severity }}
+    告警详情: 
+    {{ if $alert.Annotations.summary }}{{ $alert.Annotations.summary }}{{ else }}无摘要信息{{ end }};
+    {{ if $alert.Annotations.description }}{{ $alert.Annotations.description }}{{ else }}无详细描述{{ end }}
+    故障时间: {{ ($alert.StartsAt.Add 28800e9).Format "2006-01-02 15:04:05" }}
+    {{- if gt (len $alert.Labels.instance) 0 }}
+    实例信息: {{ $alert.Labels.instance }}
+    {{- end }}
+    {{- if gt (len $alert.Labels.namespace) 0 }}
+    命名空间: {{ $alert.Labels.namespace }}
+    {{- end }}
+    {{- if gt (len $alert.Labels.node) 0 }}
+    节点信息: {{ $alert.Labels.node }}
+    {{- end }}
+    {{- if gt (len $alert.Labels.pod) 0 }}
+    实例名称: {{ $alert.Labels.pod }}
+    {{- end }}
+    ===========END============
+    {{- end }}
+    {{- end }}
+    {{- end }}
+    
+    {{- if gt (len .Alerts.Resolved) 0 -}}
+    {{- range $index, $alert := .Alerts -}}
+    {{- if eq $index 0 }}
+    ==========异常恢复==========
+    告警类型: {{ $alert.Labels.alertname }}
+    告警级别: {{ $alert.Labels.severity }}
+    告警详情: 
+    {{ if $alert.Annotations.summary }}{{ $alert.Annotations.summary }}{{ else }}无摘要信息{{ end }};
+    {{ if $alert.Annotations.description }}{{ $alert.Annotations.description }}{{ else }}无详细描述{{ end }}
+    故障时间: {{ ($alert.StartsAt.Add 28800e9).Format "2006-01-02 15:04:05" }}
+    恢复时间: {{ ($alert.EndsAt.Add 28800e9).Format "2006-01-02 15:04:05" }}
+    {{- if gt (len $alert.Labels.instance) 0 }}
+    实例信息: {{ $alert.Labels.instance }}
+    {{- end }}
+    {{- if gt (len $alert.Labels.namespace) 0 }}
+    命名空间: {{ $alert.Labels.namespace }}
+    {{- end }}
+    {{- if gt (len $alert.Labels.node) 0 }}
+    节点信息: {{ $alert.Labels.node }}
+    {{- end }}
+    {{- if gt (len $alert.Labels.pod) 0 }}
+    实例名称: {{ $alert.Labels.pod }}
+    {{- end }}
+    ===========END============
+    {{- end }}
+    {{- end }}
+    {{- end }}
+    {{- end }}

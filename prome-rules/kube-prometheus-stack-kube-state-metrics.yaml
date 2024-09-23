@@ -1,0 +1,64 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/name: kube-prometheus
+    app.kubernetes.io/part-of: kube-prometheus
+    prometheus: k8s
+    role: alert-rules
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-kube-state-metrics
+  namespace: monitoring
+spec:
+  groups:
+  - name: kube-state-metrics
+    rules:
+    - alert: KubeStateMetricsListErrors
+      annotations:
+        description: kube-state-metrics 在列表操作中遇到错误的比例较高，这可能导致它无法正确或根本无法暴露 Kubernetes 对象的指标。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kube-state-metrics/kubestatemetricslisterrors 
+        summary: kube-state-metrics 在列表操作中遇到错误。
+      expr: |-
+        (sum(rate(kube_state_metrics_list_total{job="kube-state-metrics",result="error"}[5m]))
+          /
+        sum(rate(kube_state_metrics_list_total{job="kube-state-metrics"}[5m])))
+        > 0.01
+      for: 15m
+      labels:
+        severity: critical
+    - alert: KubeStateMetricsWatchErrors
+      annotations:
+        description: kube-state-metrics 在观察操作中遇到错误的比例较高，这可能导致它无法正确或根本无法暴露 Kubernetes 对象的指标。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kube-state-metrics/kubestatemetricswatcherrors 
+        summary: kube-state-metrics 在观察操作中遇到错误。
+      expr: |-
+        (sum(rate(kube_state_metrics_watch_total{job="kube-state-metrics",result="error"}[5m]))
+          /
+        sum(rate(kube_state_metrics_watch_total{job="kube-state-metrics"}[5m])))
+        > 0.01
+      for: 15m
+      labels:
+        severity: critical
+    - alert: KubeStateMetricsShardingMismatch
+      annotations:
+        description: kube-state-metrics 运行的 Pods 配置了不同的 --total-shards 参数，一些 Kubernetes 对象可能被多次暴露或根本没有暴露。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kube-state-metrics/kubestatemetricsshardingmismatch 
+        summary: kube-state-metrics 分片配置错误。
+      expr: stdvar (kube_state_metrics_total_shards{job="kube-state-metrics"}) !=
+        0
+      for: 15m
+      labels:
+        severity: critical
+    - alert: KubeStateMetricsShardsMissing
+      annotations:
+        description: kube-state-metrics 分片缺失，一些 Kubernetes 对象没有被暴露。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kube-state-metrics/kubestatemetricsshardsmissing 
+        summary: kube-state-metrics 分片缺失。
+      expr: |-
+        2^max(kube_state_metrics_total_shards{job="kube-state-metrics"}) - 1
+          -
+        sum( 2 ^ max by (shard_ordinal) (kube_state_metrics_shard_ordinal{job="kube-state-metrics"}) )
+        != 0
+      for: 15m
+      labels:
+        severity: critical

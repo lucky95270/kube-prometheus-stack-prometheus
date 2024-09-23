@@ -1,0 +1,143 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/name: kube-prometheus
+    app.kubernetes.io/part-of: kube-prometheus
+    prometheus: k8s
+    role: alert-rules
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-kubernetes-system-kubelet
+  namespace: monitoring
+spec:
+  groups:
+  - name: kubernetes-system-kubelet
+    rules:
+    - alert: KubeNodeNotReady
+      annotations:
+        description: '{{ $labels.node }} 已经连续超过15分钟未准备就绪。'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubenodenotready 
+        summary: 节点未准备就绪。
+      expr: kube_node_status_condition{job="kube-state-metrics",condition="Ready",status="true"}
+        == 0
+      for: 15m
+      labels:
+        severity: warning
+    - alert: KubeNodeUnreachable
+      annotations:
+        description: '{{ $labels.node }} 不可达，部分工作负载可能会被重新调度。'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubenodeunreachable 
+        summary: 节点不可达。
+      expr: (kube_node_spec_taint{job="kube-state-metrics",key="node.kubernetes.io/unreachable",effect="NoSchedule"}
+        unless ignoring(key,value) kube_node_spec_taint{job="kube-state-metrics",key=~"ToBeDeletedByClusterAutoscaler|cloud.google.com/impending-node-termination|aws-node-termination-handler/spot-itn"})
+        == 1
+      for: 15m
+      labels:
+        severity: warning
+    - alert: KubeletTooManyPods
+      annotations:
+        description: Kubelet '{{ $labels.node }}' 正在运行的 Pod 数量占其容量的 {{ $value | humanizePercentage }}。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubelettoomanypods 
+        summary: Kubelet 正在以最大容量运行。
+      expr: |-
+        count by(cluster, node) (
+          (kube_pod_status_phase{job="kube-state-metrics",phase="Running"} == 1) * on(instance,pod,namespace,cluster) group_left(node) topk by(instance,pod,namespace,cluster) (1, kube_pod_info{job="kube-state-metrics"})
+        )
+        /
+        max by(cluster, node) (
+          kube_node_status_capacity{job="kube-state-metrics",resource="pods"} != 1
+        ) > 0.95
+      for: 15m
+      labels:
+        severity: info
+    - alert: KubeNodeReadinessFlapping
+      annotations:
+        description: 节点 {{ $labels.node }} 的准备就绪状态在过去15分钟内改变了 {{ $value }} 次。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubenodereadinessflapping 
+        summary: 节点准备就绪状态不稳定。
+      expr: sum(changes(kube_node_status_condition{status="true",condition="Ready"}[15m]))
+        by (cluster, node) > 2
+      for: 15m
+      labels:
+        severity: warning
+    - alert: KubeletPlegDurationHigh
+      annotations:
+        description: Kubelet Pod 生命周期事件生成器在节点 {{ $labels.node }} 上的99百分位持续时间为 {{ $value }} 秒。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeletplegdurationhigh 
+        summary: Kubelet Pod 生命周期事件生成器重新列出的时间过长。
+      expr: node_quantile:kubelet_pleg_relist_duration_seconds:histogram_quantile{quantile="0.99"}
+        >= 10
+      for: 5m
+      labels:
+        severity: warning
+    - alert: KubeletPodStartUpLatencyHigh
+      annotations:
+        description: Kubelet Pod 启动的99百分位延迟在节点 {{ $labels.node }} 上为 {{ $value }} 秒。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeletpodstartuplatencyhigh 
+        summary: Kubelet Pod 启动延迟过高。
+      expr: histogram_quantile(0.99, sum(rate(kubelet_pod_worker_duration_seconds_bucket{job="kubelet", metrics_path="/metrics"}[5m])) by (cluster, instance, le)) * on(cluster, instance)
+        group_left(node) kubelet_node_name{job="kubelet", metrics_path="/metrics"}
+        > 60
+      for: 15m
+      labels:
+        severity: warning
+    - alert: KubeletClientCertificateExpiration
+      annotations:
+        description: 节点 {{ $labels.node }} 上的 Kubelet 客户端证书将在 {{ $value | humanizeDuration }} 后过期。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeletclientcertificateexpiration 
+        summary: Kubelet 客户端证书即将过期。
+      expr: kubelet_certificate_manager_client_ttl_seconds < 604800
+      labels:
+        severity: warning
+    - alert: KubeletClientCertificateExpiration
+      annotations:
+        description: 节点 {{ $labels.node }} 上的 Kubelet 客户端证书将在 {{ $value | humanizeDuration }} 后过期。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeletclientcertificateexpiration 
+        summary: Kubelet 客户端证书即将过期。
+      expr: kubelet_certificate_manager_client_ttl_seconds < 86400
+      labels:
+        severity: critical
+    - alert: KubeletServerCertificateExpiration
+      annotations:
+        description: 节点 {{ $labels.node }} 上的 Kubelet 服务器证书将在 {{ $value | humanizeDuration }} 后过期。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeletservercertificateexpiration 
+        summary: Kubelet 服务器证书即将过期。
+      expr: kubelet_certificate_manager_server_ttl_seconds < 604800
+      labels:
+        severity: warning
+    - alert: KubeletServerCertificateExpiration
+      annotations:
+        description: 节点 {{ $labels.node }} 上的 Kubelet 服务器证书将在 {{ $value | humanizeDuration }} 后过期。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeletservercertificateexpiration 
+        summary: Kubelet 服务器证书即将过期。
+      expr: kubelet_certificate_manager_server_ttl_seconds < 86400
+      labels:
+        severity: critical
+    - alert: KubeletClientCertificateRenewalErrors
+      annotations:
+        description: Kubelet 在节点 {{ $labels.node }} 上未能更新其客户端证书（在过去5分钟内有 {{ $value | humanize }} 次错误）。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeletclientcertificaterenewalerrors 
+        summary: Kubelet 未能更新其客户端证书。
+      expr: increase(kubelet_certificate_manager_client_expiration_renew_errors[5m])
+        > 0
+      for: 15m
+      labels:
+        severity: warning
+    - alert: KubeletServerCertificateRenewalErrors
+      annotations:
+        description: Kubelet 在节点 {{ $labels.node }} 上未能更新其服务器证书（在过去5分钟内有 {{ $value | humanize }} 次错误）。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeletservercertificaterenewalerrors 
+        summary: Kubelet 未能更新其服务器证书。
+      expr: increase(kubelet_server_expiration_renew_errors[5m]) > 0
+      for: 15m
+      labels:
+        severity: warning
+    - alert: KubeletDown
+      annotations:
+        description: Kubelet 已从 Prometheus 目标发现中消失。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeletdown 
+        summary: 目标从 Prometheus 目标发现中消失。
+      expr: absent(up{job="kubelet", metrics_path="/metrics"} == 1)
+      for: 15m
+      labels:
+        severity: critical

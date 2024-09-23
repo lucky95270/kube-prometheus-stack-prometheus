@@ -1,0 +1,83 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-prometheus-operator
+  namespace: monitoring
+spec:
+  groups:
+  - name: prometheus-operator
+    rules:
+    - alert: PrometheusOperatorListErrors
+      annotations:
+        description: '控制器 {{$labels.controller}} 在 {{$labels.namespace}} 命名空间中执行列表操作时出错'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus-operator/prometheusoperatorlisterrors 
+        summary: 控制器执行列表操作时出错。
+      expr: (sum by (controller,namespace) (rate(prometheus_operator_list_operations_failed_total{job="kube-prometheus-stack-operator",namespace="monitoring"}[10m]))
+        / sum by (controller,namespace) (rate(prometheus_operator_list_operations_total{job="kube-prometheus-stack-operator",namespace="monitoring"}[10m])))
+        > 0.4
+      for: 15m
+      labels:
+        severity: warning
+    - alert: PrometheusOperatorWatchErrors
+      annotations:
+        description: '控制器 {{$labels.controller}} 在 {{$labels.namespace}} 命名空间中执行监视操作时出错'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus-operator/prometheusoperatorwatcherrors 
+        summary: 控制器执行监视操作时出错。
+      expr: (sum by (controller,namespace) (rate(prometheus_operator_watch_operations_failed_total{job="kube-prometheus-stack-operator",namespace="monitoring"}[5m]))
+        / sum by (controller,namespace) (rate(prometheus_operator_watch_operations_total{job="kube-prometheus-stack-operator",namespace="monitoring"}[5m])))
+        > 0.4
+      for: 15m
+      labels:
+        severity: warning
+    - alert: PrometheusOperatorSyncFailed
+      annotations:
+        description: '控制器 {{ $labels.controller }} 在 {{ $labels.namespace }} 命名空间中无法协调 {{ $value }} 个对象'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus-operator/prometheusoperatorsyncfailed 
+        summary: 上一次控制器协调失败
+      expr: min_over_time(prometheus_operator_syncs{status="failed",job="kube-prometheus-stack-operator",namespace="monitoring"}[5m])
+        > 0
+      for: 10m
+      labels:
+        severity: warning
+    - alert: PrometheusOperatorReconcileErrors
+      annotations:
+        description: '{{ $value | humanizePercentage }} 的协调操作失败，影响了 {{ $labels.namespace }} 命名空间中的 {{ $labels.controller }} 控制器'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus-operator/prometheusoperatorreconcileerrors 
+        summary: 协调控制器时出错。
+      expr: (sum by (controller,namespace) (rate(prometheus_operator_reconcile_errors_total{job="kube-prometheus-stack-operator",namespace="monitoring"}[5m])))
+        / (sum by (controller,namespace) (rate(prometheus_operator_reconcile_operations_total{job="kube-prometheus-stack-operator",namespace="monitoring"}[5m])))
+        > 0.1
+      for: 10m
+      labels:
+        severity: warning
+    - alert: PrometheusOperatorNodeLookupErrors
+      annotations:
+        description: '在 {{ $labels.namespace }} 命名空间中协调 Prometheus 时出错'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus-operator/prometheusoperatornodelookuperrors 
+        summary: 协调 Prometheus 时出错。
+      expr: rate(prometheus_operator_node_address_lookup_errors_total{job="kube-prometheus-stack-operator",namespace="monitoring"}[5m])
+        > 0.1
+      for: 10m
+      labels:
+        severity: warning
+    - alert: PrometheusOperatorNotReady
+      annotations:
+        description: '{{ $labels.namespace }} 命名空间中的 Prometheus 操作符无法准备协调 {{ $labels.controller }} 资源'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus-operator/prometheusoperatornotready 
+        summary: Prometheus 操作符未就绪
+      expr: min by(namespace, controller) (max_over_time(prometheus_operator_ready{job="kube-prometheus-stack-operator",namespace="monitoring"}[5m]) == 0)
+      for: 5m
+      labels:
+        severity: warning
+    - alert: PrometheusOperatorRejectedResources
+      annotations:
+        description: '{{ $labels.namespace }} 命名空间中的 Prometheus 操作符拒绝了 {{ printf "%0.0f" $value }} 个 {{ $labels.controller }}/{{ $labels.resource }} 资源'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus-operator/prometheusoperatorrejectedresources 
+        summary: Prometheus 操作符拒绝的资源
+      expr: min_over_time(prometheus_operator_managed_resources{state="rejected",job="kube-prometheus-stack-operator",namespace="monitoring"}[5m])
+        > 0
+      for: 5m
+      labels:
+        severity: warning

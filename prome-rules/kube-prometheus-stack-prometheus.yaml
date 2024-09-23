@@ -1,0 +1,256 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/name: kube-prometheus
+    app.kubernetes.io/part-of: kube-prometheus
+    prometheus: k8s
+    role: alert-rules
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-prometheus
+  namespace: monitoring
+spec:
+  groups:
+  - name: prometheus
+    rules:
+    - alert: PrometheusBadConfig
+      annotations:
+        description: Prometheus {{$labels.namespace}}/{{$labels.pod}} 无法成功重新加载其配置文件。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheusbadconfig 
+        summary: Prometheus 配置重新加载失败。
+      expr: |-
+        max_over_time(prometheus_config_last_reload_successful{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m]) == 0
+      for: 10m
+      labels:
+        severity: critical
+    - alert: PrometheusNotificationQueueRunningFull
+      annotations:
+        description: Prometheus {{$labels.namespace}}/{{$labels.pod}} 的告警通知队列已满。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheusnotificationqueuerunningfull 
+        summary: 预测 Prometheus 告警通知队列在不到30分钟内将满载。
+      expr: |-
+        (
+          predict_linear(prometheus_notifications_queue_length{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m], 60 * 30)
+        >
+          min_over_time(prometheus_notifications_queue_capacity{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m])
+        )
+      for: 15m
+      labels:
+        severity: warning
+    - alert: PrometheusErrorSendingAlertsToSomeAlertmanagers
+      annotations:
+        description: 在向特定的 Alertmanager 发送告警时，Prometheus {{$labels.namespace}}/{{$labels.pod}} 遇到了 {{ printf "%.1f" $value }}% 的错误。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheuserrorsendingalertstosomealertmanagers 
+        summary: Prometheus 在向特定 Alertmanager 发送告警时遇到了超过1%的错误。
+      expr: |-
+        (
+          rate(prometheus_notifications_errors_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m])
+        /
+          rate(prometheus_notifications_sent_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m])
+        )
+        * 100
+        > 1
+      for: 15m
+      labels:
+        severity: warning
+    - alert: PrometheusNotConnectedToAlertmanagers
+      annotations:
+        description: Prometheus {{$labels.namespace}}/{{$labels.pod}} 未连接到任何 Alertmanager。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheusnotconnectedtoalertmanagers 
+        summary: Prometheus 未连接到任何 Alertmanager。
+      expr: |-
+        max_over_time(prometheus_notifications_alertmanagers_discovered{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m]) < 1
+      for: 10m
+      labels:
+        severity: warning
+    - alert: PrometheusTSDBReloadsFailing
+      annotations:
+        description: 在过去3小时内，Prometheus {{$labels.namespace}}/{{$labels.pod}} 检测到 {{ $value | humanize }} 次重新加载失败。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheustsdbreloadsfailing 
+        summary: Prometheus 重新从磁盘加载块时出现问题。
+      expr: increase(prometheus_tsdb_reloads_failures_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[3h])
+        > 0
+      for: 4h
+      labels:
+        severity: warning
+    - alert: PrometheusTSDBCompactionsFailing
+      annotations:
+        description: 在过去3小时内，Prometheus {{$labels.namespace}}/{{$labels.pod}} 检测到 {{ $value | humanize }} 次压缩失败。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheustsdbcompactionsfailing 
+        summary: Prometheus 压缩块时出现问题。
+      expr: increase(prometheus_tsdb_compactions_failed_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[3h])
+        > 0
+      for: 4h
+      labels:
+        severity: warning
+    - alert: PrometheusNotIngestingSamples
+      annotations:
+        description: Prometheus {{$labels.namespace}}/{{$labels.pod}} 没有在摄取样本。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheusnotingestingsamples
+        summary: Prometheus 没有在摄取样本。
+      expr: |-
+        rate(prometheus_tsdb_head_samples_appended_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m]) <= 0
+        and
+        (
+          sum without(scrape_job) (prometheus_target_metadata_cache_entries{job="kube-prometheus-stack-prometheus",namespace="monitoring"}) > 0
+          or
+          sum without(rule_group) (prometheus_rule_group_rules{job="kube-prometheus-stack-prometheus",namespace="monitoring"}) > 0
+        )
+      for: 10m
+      labels:
+        severity: warning
+    - alert: PrometheusDuplicateTimestamps
+      annotations:
+        description: Prometheus {{$labels.namespace}}/{{$labels.pod}} 每秒丢弃了 {{ printf "%.4g" $value  }} 个具有不同值但时间戳重复的样本。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheusduplicatetimestamps 
+        summary: Prometheus 正在丢弃具有重复时间戳的样本。
+      expr: rate(prometheus_target_scrapes_sample_duplicate_timestamp_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m])
+        > 0
+      for: 10m
+      labels:
+        severity: warning
+    - alert: PrometheusOutOfOrderTimestamps
+      annotations:
+        description: Prometheus {{$labels.namespace}}/{{$labels.pod}} 每秒丢弃了 {{ printf "%.4g" $value  }} 个时间戳错序的样本。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheusoutofordertimestamps 
+        summary: Prometheus 丢弃了时间戳错序的样本。
+      expr: rate(prometheus_target_scrapes_sample_out_of_order_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m])
+        > 0
+      for: 10m
+      labels:
+        severity: warning
+    - alert: PrometheusRemoteStorageFailures
+      annotations:
+        description: Prometheus {{$labels.namespace}}/{{$labels.pod}} 未能将 {{ printf "%.1f" $value }}% 的样本发送到 {{ $labels.remote_name}}:{{ $labels.url }}。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheusremotestoragefailures 
+        summary: Prometheus 未能将样本发送到远程存储。
+      expr: |-
+        (
+          (rate(prometheus_remote_storage_failed_samples_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m]) or rate(prometheus_remote_storage_samples_failed_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m]))
+        /
+          (
+            (rate(prometheus_remote_storage_failed_samples_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m]) or rate(prometheus_remote_storage_samples_failed_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m]))
+            +
+            (rate(prometheus_remote_storage_succeeded_samples_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m]) or rate(prometheus_remote_storage_samples_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m]))
+          )
+        )
+        * 100
+        > 1
+      for: 15m
+      labels:
+        severity: critical
+    - alert: PrometheusRemoteWriteBehind
+      annotations:
+        description: Prometheus {{$labels.namespace}}/{{$labels.pod}} 远程写入落后 {{ printf "%.1f" $value }} 秒，对于 {{ $labels.remote_name}}:{{ $labels.url }}。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheusremotewritebehind 
+        summary: Prometheus 远程写入落后。
+      expr: |-
+        (
+          max_over_time(prometheus_remote_storage_highest_timestamp_in_seconds{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m])
+        - ignoring(remote_name, url) group_right
+          max_over_time(prometheus_remote_storage_queue_highest_sent_timestamp_seconds{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m])
+        )
+        > 120
+      for: 15m
+      labels:
+        severity: critical
+    - alert: PrometheusRemoteWriteDesiredShards
+      annotations:
+        description: Prometheus {{$labels.namespace}}/{{$labels.pod}} 远程写入期望分片计算希望运行 {{ $value }} 个分片，对于队列 {{ $labels.remote_name}}:{{ $labels.url }}，这超过了最大值 {{ printf `prometheus_remote_storage_shards_max{instance="%s",job="kube-prometheus-stack-prometheus",namespace="monitoring"}` $labels.instance | query | first | value }}。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheusremotewritedesiredshards 
+        summary: Prometheus 远程写入期望分片计算希望运行超过配置的最大分片数。
+      expr: |-
+        (
+          max_over_time(prometheus_remote_storage_shards_desired{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m])
+        >
+          max_over_time(prometheus_remote_storage_shards_max{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m])
+        )
+      for: 15m
+      labels:
+        severity: warning
+    - alert: PrometheusRuleFailures
+      annotations:
+        description: Prometheus {{$labels.namespace}}/{{$labels.pod}} 在过去5分钟内未能评估 {{ printf "%.0f" $value }} 条规则。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheusrulefailures 
+        summary: Prometheus 规则评估失败。
+      expr: increase(prometheus_rule_evaluation_failures_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m])
+        > 0
+      for: 15m
+      labels:
+        severity: critical
+    - alert: PrometheusMissingRuleEvaluations
+      annotations:
+        description: Prometheus {{$labels.namespace}}/{{$labels.pod}} 在过去5分钟内错过了 {{ printf "%.0f" $value }} 次规则组评估。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheusmissingruleevaluations 
+        summary: Prometheus 由于规则组评估缓慢错过了规则评估。
+      expr: increase(prometheus_rule_group_iterations_missed_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m])
+        > 0
+      for: 15m
+      labels:
+        severity: warning
+    - alert: PrometheusTargetLimitHit
+      annotations:
+        description: Prometheus {{$labels.namespace}}/{{$labels.pod}} 由于目标数量超出配置的目标限制，丢弃了 {{ printf "%.0f" $value }} 个目标。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheustargetlimithit 
+        summary: Prometheus 由于某些抓取配置超出目标限制而丢弃了目标。
+      expr: increase(prometheus_target_scrape_pool_exceeded_target_limit_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m])
+        > 0
+      for: 15m
+      labels:
+        severity: warning
+    - alert: PrometheusLabelLimitHit
+      annotations:
+        description: Prometheus {{$labels.namespace}}/{{$labels.pod}} 丢弃了 {{ printf "%.0f" $value }} 个目标，因为某些样本超出了配置的 label_limit、label_name_length_limit 或 label_value_length_limit。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheuslabellimithit 
+        summary: Prometheus 由于某些抓取配置超出了标签限制而丢弃了目标。
+      expr: increase(prometheus_target_scrape_pool_exceeded_label_limits_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m])
+        > 0
+      for: 15m
+      labels:
+        severity: warning
+    - alert: PrometheusScrapeBodySizeLimitHit
+      annotations:
+        description: Prometheus {{$labels.namespace}}/{{$labels.pod}} 在过去5分钟内由于某些目标超出了配置的 body_size_limit 导致 {{ printf "%.0f" $value }} 次抓取失败。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheusscrapebodysizelimithit 
+        summary: Prometheus 丢弃了超出身体大小限制的一些目标。
+      expr: increase(prometheus_target_scrapes_exceeded_body_size_limit_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m])
+        > 0
+      for: 15m
+      labels:
+        severity: warning
+    - alert: PrometheusScrapeSampleLimitHit
+      annotations:
+        description: Prometheus {{$labels.namespace}}/{{$labels.pod}} 在过去5分钟内由于某些目标超出了配置的 sample_limit 导致 {{ printf "%.0f" $value }} 次抓取失败。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheusscrapesamplelimithit 
+        summary: Prometheus 失败的抓取超出了配置的样本限制。
+      expr: increase(prometheus_target_scrapes_exceeded_sample_limit_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m])
+        > 0
+      for: 15m
+      labels:
+        severity: warning
+    - alert: PrometheusTargetSyncFailure
+      annotations:
+        description: '{{ printf "%.0f" $value }} 个目标在 Prometheus {{$labels.namespace}}/{{$labels.pod}} 中未能同步，因为提供了无效的配置。'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheustargetsyncfailure 
+        summary: Prometheus 未能同步目标。
+      expr: increase(prometheus_target_sync_failed_total{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[30m])
+        > 0
+      for: 5m
+      labels:
+        severity: critical
+    - alert: PrometheusErrorSendingAlertsToAnyAlertmanager
+      annotations:
+        description: 在从 Prometheus {{$labels.namespace}}/{{$labels.pod}} 向任何 Alertmanager 发送告警时，最小错误率为 {{ printf "%.1f" $value }}%。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheuserrorsendingalertstoanyalertmanager 
+        summary: Prometheus 在向任何 Alertmanager 发送告警时遇到超过3%的错误。
+      expr: |-
+        min without (alertmanager) (
+          rate(prometheus_notifications_errors_total{job="kube-prometheus-stack-prometheus",namespace="monitoring",alertmanager!~``}[5m])
+          /
+          rate(prometheus_notifications_sent_total{job="kube-prometheus-stack-prometheus",namespace="monitoring",alertmanager!~``}[5m])
+          )
+          * 100
+          > 3
+      for: 15m
+      labels:
+        severity: critical

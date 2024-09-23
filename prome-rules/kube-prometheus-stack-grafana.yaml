@@ -1,0 +1,47 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/name: kube-prometheus
+    app.kubernetes.io/part-of: kube-prometheus
+    prometheus: k8s
+    role: alert-rules
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-grafana
+  namespace: monitoring
+spec:
+  groups:
+  - name: kube-grafana
+    rules:
+    - alert: GrafanaHTTP请求错误过多
+      annotations:
+        description: 'Grafana 的 HTTP 500 错误过多，可能存在服务异常。'
+      expr: |
+        sum(rate(grafana_http_request_total{status="500"}[5m])) > 5
+      for: 5m
+      labels:
+        severity: critical
+    - alert: Grafana内存使用过高
+      annotations:
+        description: 'Grafana 内存使用超过 90%，可能存在内存泄漏或高负载。'
+      expr: |
+        grafana_memstats_alloc_bytes / grafana_memstats_sys_bytes > 0.9
+      for: 5m
+      labels:
+        severity: warning
+    - alert: Grafana数据源查询时间过长
+      annotations:
+        description: 'Grafana 数据源查询时间超过正常范围，可能影响性能。'
+      expr: |
+        histogram_quantile(0.99, sum(rate(grafana_data_source_request_duration_seconds_bucket[5m])) by (le)) > 1
+      for: 5m
+      labels:
+        severity: warning
+    - alert: Grafana活跃用户过多
+      annotations:
+        description: 'Grafana 当前活跃用户数超过预期，可能导致系统负载增加。'
+      expr: |
+        grafana_active_users > 100
+      for: 5m
+      labels:
+        severity: warning

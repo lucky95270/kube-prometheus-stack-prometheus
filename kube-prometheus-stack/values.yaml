@@ -1,0 +1,790 @@
+nameOverride: ""
+namespaceOverride: ""
+kubeTargetVersionOverride: ""
+kubeVersionOverride: ""
+fullnameOverride: ""
+commonLabels: {}
+defaultRules:
+  create: true
+  rules:
+    alertmanager: true
+    etcd: true
+    configReloaders: true
+    general: true
+    k8s: true
+    kubeApiserver: true
+    kubeApiserverAvailability: true
+    kubeApiserverSlos: true
+    kubelet: true
+    kubeProxy: true
+    kubePrometheusGeneral: true
+    kubePrometheusNodeRecording: true
+    kubernetesApps: true
+    kubernetesResources: true
+    kubernetesStorage: true
+    kubernetesSystem: true
+    kubeScheduler: true
+    kubeStateMetrics: true
+    network: true
+    node: true
+    nodeExporterAlerting: true
+    nodeExporterRecording: true
+    prometheus: true
+    prometheusOperator: true
+  appNamespacesTarget: ".*"
+  labels: {}
+  annotations: {}
+  additionalRuleLabels: {}
+  runbookUrl: "https://runbooks.prometheus-operator.dev/runbooks"
+  disabled: {}
+additionalPrometheusRulesMap: {}
+global:
+  rbac:
+    create: true
+    createAggregateClusterRoles: false
+    pspEnabled: false
+    pspAnnotations: {}
+  imagePullSecrets: []
+alertmanager:
+  enabled: true
+  annotations: {}
+  apiVersion: v2
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+    maxUnavailable: ""
+  config:
+    global:
+       #163服务器
+       smtp_smarthost: 'smtp.163.com:465'
+       #发邮件的邮箱
+       smtp_from: 'xxxxxxxxxxxxx@163.com'
+       #发邮件的邮箱用户名，也就是你的邮箱
+       smtp_auth_username: 'xxxxxxxxxxxxx@163.com'
+       #发邮件的邮箱密码
+       smtp_auth_password: 'xxxxxxxxxxxxxxxxx'
+       #进行tls验证
+       smtp_require_tls: false
+       #超时时间
+       resolve_timeout: 10m 
+    route:
+       group_by: ['alertname']
+       #当收到告警的时候，等待group_wait配置的时间，看是否还有告警，如果有就一起发出去
+       group_wait: '10s'
+       #如果上次告警信息发送成功，此时又来了一个新的告警数据，则需要等待group_interval配置的时间才可以发送出去
+       group_interval: '10s'
+       #如果上次告警信息发送成功，且问题没有解决，则等待repeat_interval配置的时间再次发送告警数据
+       repeat_interval: '2h'
+       #全局报警组，这个参数是必选的
+       receiver: 'all'
+    receivers:
+      - name: 'all'
+        email_configs:
+          - to: 'xiahediyijun@163.com'
+            html: '{{ template "email.to.html" . }}'
+            headers:
+              subject: 'Kubernetes集群告警来信: {{ .CommonAnnotations.summary }}'
+        webhook_configs:
+          - url: 'http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxx'
+    inhibit_rules:
+      - source_match:
+          severity: 'info'
+        target_match:
+          severity: 'warning|critical'
+        equal: ['alertname', 'namespace']
+    # 指定模板目录
+    templates:
+      - '/etc/alertmanager/template/*.tmpl'
+  tplConfig: false
+  templateFiles: {}
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+    - alertmanager.taicang.local
+    paths:
+    - /
+  secret:
+    annotations: {}
+  ingressPerReplica:
+    enabled: false
+    annotations: {}
+    labels: {}
+    hostPrefix: ""
+    hostDomain: ""
+    paths: []
+    tlsSecretName: ""
+    tlsSecretPerReplica:
+      enabled: false
+      prefix: "alertmanager"
+  service:
+    annotations: {}
+    labels: {}
+    clusterIP: ""
+    port: 9093
+    targetPort: 9093
+    nodePort: 30903
+    additionalPorts: []
+    externalIPs: []
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+    externalTrafficPolicy: Cluster
+    type: ClusterIP
+  servicePerReplica:
+    enabled: false
+    annotations: {}
+    port: 9093
+    targetPort: 9093
+    nodePort: 30904
+    loadBalancerSourceRanges: []
+    externalTrafficPolicy: Cluster
+    type: ClusterIP
+  serviceMonitor:
+    interval: ""
+    selfMonitor: true
+    proxyUrl: ""
+    scheme: ""
+    tlsConfig: {}
+    bearerTokenFile:
+    metricRelabelings: []
+    relabelings: []
+  alertmanagerSpec:
+    podMetadata: {}
+    image:
+      repository: quay.io/prometheus/alertmanager
+      tag: v0.24.0
+      sha: ""
+    useExistingSecret: false
+    secrets: []
+    configMaps: []
+    alertmanagerConfigSelector: {}
+    alertmanagerConfigNamespaceSelector: {}
+    alertmanagerConfiguration: {}
+    logFormat: logfmt
+    logLevel: info
+    replicas: 2
+    retention: 120h
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: nas-nfs-provider
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Ti
+    externalUrl:
+    routePrefix: /
+    paused: false
+    nodeSelector: {}
+    resources:
+      requests:
+        memory: "512Mi"  # alertmanager启动时所需的最小内存
+        cpu: "200m"      # alertmanager启动时所需的最小内存启动时所需的最小CPU
+      limits:
+        memory: "4Gi"  # alertmanager启动时所需的最小内存可以使用的最大内存
+        cpu: "4"      # alertmanager启动时所需的最小内存可以使用的最大CPU
+    podAntiAffinity: ""
+    podAntiAffinityTopologyKey: kubernetes.io/hostname
+    affinity: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    securityContext:
+      runAsGroup: 2000
+      runAsNonRoot: true
+      runAsUser: 1000
+      fsGroup: 2000
+    listenLocal: false
+    containers: []
+    volumes: []
+    volumeMounts: []
+    initContainers: []
+    priorityClassName: ""
+    additionalPeers: []
+    portName: "http-web"
+    clusterAdvertiseAddress: false
+    forceEnableClusterMode: false
+  extraSecret:
+    annotations: {}
+    data: {}
+grafana:
+  enabled: true
+  namespaceOverride: ""
+  forceDeployDatasources: false
+  forceDeployDashboards: false
+  defaultDashboardsEnabled: true
+  defaultDashboardsTimezone: utc
+  adminPassword: prom-operator
+  rbac:
+    pspEnabled: false
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+    - grafana.taicang.local
+    path: /
+    tls: []
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      annotations: {}
+      multicluster:
+        global:
+          enabled: false
+        etcd:
+          enabled: false
+      provider:
+        allowUiUpdates: false
+    datasources:
+      enabled: true
+      defaultDatasourceEnabled: true
+      uid: prometheus
+      annotations: {}
+      createPrometheusReplicasDatasources: false
+      label: grafana_datasource
+      labelValue: "1"
+  extraConfigmapMounts: []
+  deleteDatasources: []
+  additionalDataSources: []
+  service:
+    portName: http-web
+  serviceMonitor:
+    enabled: true
+    path: "/metrics"
+    labels:
+      release: kube-prometheus-stack
+    interval: ""
+    scheme: http
+    tlsConfig: {}
+    scrapeTimeout: 30s
+    relabelings: []
+  # 添加的 PVC 持久化存储卷配置
+  persistence:
+    enabled: true
+    type: pvc
+    accessModes:
+      - ReadWriteOnce
+    size: 300Gi  # 可以根据需求调整存储大小
+    storageClassName: nas-nfs-provider
+    finalizers:
+      - kubernetes.io/pvc-protection
+  # 添加资源请求和限制配置
+  resources:
+    requests:
+      memory: "500Mi"  # Grafana启动时所需的最小内存
+      cpu: "500m"      # Grafana启动时所需的最小CPU
+    limits:
+      memory: "1Gi"  # Grafana可以使用的最大内存
+      cpu: "800m"      # Grafana可以使用的最大CPU
+kubeApiServer:
+  enabled: true
+  tlsConfig:
+    serverName: kubernetes
+    insecureSkipVerify: false
+  serviceMonitor:
+    interval: ""
+    proxyUrl: ""
+    jobLabel: component
+    selector:
+      matchLabels:
+        component: apiserver
+        provider: kubernetes
+    metricRelabelings: []
+    relabelings: []
+kubelet:
+  enabled: true
+  namespace: kube-system
+  serviceMonitor:
+    interval: ""
+    proxyUrl: ""
+    https: true
+    cAdvisor: true
+    probes: true
+    resource: false
+    resourcePath: "/metrics/resource/v1alpha1"
+    cAdvisorMetricRelabelings: []
+    probesMetricRelabelings: []
+    cAdvisorRelabelings:
+      - sourceLabels: [__metrics_path__]
+        targetLabel: metrics_path
+    probesRelabelings:
+      - sourceLabels: [__metrics_path__]
+        targetLabel: metrics_path
+    resourceRelabelings:
+      - sourceLabels: [__metrics_path__]
+        targetLabel: metrics_path
+    metricRelabelings: []
+    relabelings:
+      - sourceLabels: [__metrics_path__]
+        targetLabel: metrics_path
+kubeControllerManager:
+  enabled: true
+  endpoints: []
+  service:
+    enabled: true
+    port: null
+    targetPort: null
+  serviceMonitor:
+    enabled: true
+    interval: ""
+    proxyUrl: ""
+    https: null
+    insecureSkipVerify: null
+    serverName: null
+    metricRelabelings: []
+    relabelings: []
+coreDns:
+  enabled: true
+  service:
+    port: 9153
+    targetPort: 9153
+  serviceMonitor:
+    interval: ""
+    proxyUrl: ""
+    metricRelabelings: []
+    relabelings: []
+kubeDns:
+  enabled: true
+  service:
+    dnsmasq:
+      port: 10054
+      targetPort: 9153
+    skydns:
+      port: 10055
+      targetPort: 9153
+  serviceMonitor:
+    interval: ""
+    proxyUrl: ""
+    metricRelabelings: []
+    relabelings: []
+    dnsmasqMetricRelabelings: []
+    dnsmasqRelabelings: []
+kubeEtcd:
+  enabled: true
+  endpoints:
+  - 172.16.246.102      #外部etcd的IP地址
+  - 172.16.246.103      #外部etcd的IP地址
+  - 172.16.246.104      #外部etcd的IP地址
+  service:
+    enabled: true
+    port: 2379
+    targetPort: 2379
+  serviceMonitor:
+    enabled: true
+    interval: ""
+    proxyUrl: ""
+    scheme: https            #使用https协议
+    insecureSkipVerify: true      #不对证书进行验证
+    serverName: "localhost"
+    #caFile: "/etc/etcd/ssl/ca.pem"
+    #certFile: "/etc/etcd/ssl/server.pem"
+    #keyFile: "/etc/etcd/ssl/server-key.pem"
+    caFile: "/etc/prometheus/secrets/kube-etcd-client-certs/ca"
+    certFile: "/etc/prometheus/secrets/kube-etcd-client-certs/cert"
+    keyFile: "/etc/prometheus/secrets/kube-etcd-client-certs/key"
+kubeScheduler:
+  enabled: true
+  endpoints: []
+  service:
+    enabled: true
+    port: null
+    targetPort: null
+  serviceMonitor:
+    enabled: true
+    interval: ""
+    proxyUrl: ""
+    https: null
+    insecureSkipVerify: null
+    serverName: null
+    metricRelabelings: []
+    relabelings: []
+kubeProxy:
+  enabled: true
+  endpoints: []
+  service:
+    enabled: true
+    port: 10249
+    targetPort: 10249
+  serviceMonitor:
+    enabled: true
+    interval: ""
+    proxyUrl: ""
+    https: false
+    metricRelabelings: []
+    relabelings: []
+kubeStateMetrics:
+  enabled: true
+kube-state-metrics:
+  namespaceOverride: ""
+  rbac:
+    create: true
+  releaseLabel: true
+  prometheus:
+    monitor:
+      enabled: true
+      interval: ""
+      scrapeTimeout: ""
+      proxyUrl: ""
+      honorLabels: true
+      metricRelabelings: []
+      relabelings: []
+  selfMonitor:
+    enabled: false
+nodeExporter:
+  enabled: true
+prometheus-node-exporter:
+  namespaceOverride: ""
+  podLabels:
+    jobLabel: node-exporter
+  extraArgs:
+    - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/.+)($|/)
+    - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$
+  service:
+    portName: http-metrics
+  prometheus:
+    monitor:
+      enabled: true
+      jobLabel: jobLabel
+      interval: ""
+      scrapeTimeout: ""
+      proxyUrl: ""
+      metricRelabelings: []
+      relabelings: []
+  rbac:
+    pspEnabled: false
+prometheusOperator:
+  enabled: true
+  tls:
+    enabled: true
+    tlsMinVersion: VersionTLS13
+    internalPort: 10250
+  admissionWebhooks:
+    failurePolicy: Fail
+    enabled: true
+    caBundle: ""
+    patch:
+      enabled: true
+      image:
+        repository: registry.cn-hangzhou.aliyuncs.com/tianxiang_app/ingress-nginx-kube-webhook-certgen
+        tag: v1.1.1
+        sha: ""
+        pullPolicy: IfNotPresent
+      resources: {}
+      priorityClassName: ""
+      podAnnotations: {}
+      nodeSelector: {}
+      affinity: {}
+      tolerations: []
+      securityContext:
+        runAsGroup: 2000
+        runAsNonRoot: true
+        runAsUser: 2000
+    certManager:
+      enabled: false
+      rootCert:
+        duration: ""  # default to be 5y
+      admissionCert:
+        duration: ""  # default to be 1y
+  namespaces: {}
+  denyNamespaces: []
+  alertmanagerInstanceNamespaces: []
+  prometheusInstanceNamespaces: []
+  thanosRulerInstanceNamespaces: []
+  serviceAccount:
+    create: true
+    name: ""
+  service:
+    annotations: {}
+    labels: {}
+    clusterIP: ""
+    nodePort: 30080
+    nodePortTls: 30443
+    additionalPorts: []
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+    externalTrafficPolicy: Cluster
+    type: ClusterIP
+    externalIPs: []
+  podLabels: {}
+  podAnnotations: {}
+  kubeletService:
+    enabled: true
+    namespace: kube-system
+    name: ""
+  serviceMonitor:
+    interval: ""
+    scrapeTimeout: ""
+    selfMonitor: true
+    metricRelabelings: []
+    relabelings: []
+  resources:
+    limits:
+      cpu: 200m
+      memory: 200Mi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+  hostNetwork: false
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  dnsConfig: {}
+  securityContext:
+    fsGroup: 65534
+    runAsGroup: 65534
+    runAsNonRoot: true
+    runAsUser: 65534
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+  image:
+    repository: quay.io/prometheus-operator/prometheus-operator
+    tag: v0.56.0
+    sha: ""
+    pullPolicy: IfNotPresent
+  prometheusConfigReloader:
+    image:
+      repository: quay.io/prometheus-operator/prometheus-config-reloader
+      tag: v0.56.0
+      sha: ""
+    resources:
+      requests:
+        cpu: 200m
+        memory: 50Mi
+      limits:
+        cpu: 200m
+        memory: 50Mi
+  thanosImage:
+    repository: quay.io/thanos/thanos
+    tag: v0.25.2
+    sha: ""
+  secretFieldSelector: ""
+prometheus:
+  enabled: true
+  annotations: {}
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+  thanosService:
+    enabled: false
+    annotations: {}
+    labels: {}
+    externalTrafficPolicy: Cluster
+    type: ClusterIP
+    portName: grpc
+    port: 10901
+    targetPort: "grpc"
+    httpPortName: http
+    httpPort: 10902
+    targetHttpPort: "http"
+    clusterIP: "None"
+    nodePort: 30901
+    httpNodePort: 30902
+  thanosServiceMonitor:
+    enabled: false
+    interval: ""
+    scheme: ""
+    tlsConfig: {}
+    bearerTokenFile:
+    metricRelabelings: []
+    relabelings: []
+  thanosServiceExternal:
+    enabled: false
+    annotations: {}
+    labels: {}
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+    portName: grpc
+    port: 10901
+    targetPort: "grpc"
+    httpPortName: http
+    httpPort: 10902
+    targetHttpPort: "http"
+    externalTrafficPolicy: Cluster
+    type: LoadBalancer
+    nodePort: 30901
+    httpNodePort: 30902
+  service:
+    annotations: {}
+    labels: {}
+    clusterIP: ""
+    port: 9090
+    targetPort: 9090
+    externalIPs: []
+    nodePort: 30090
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+    externalTrafficPolicy: Cluster
+    type: ClusterIP
+    additionalPorts: []
+    publishNotReadyAddresses: false
+    sessionAffinity: ""
+  servicePerReplica:
+    enabled: false
+    annotations: {}
+    port: 9090
+    targetPort: 9090
+    nodePort: 30091
+    loadBalancerSourceRanges: []
+    externalTrafficPolicy: Cluster
+    type: ClusterIP
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+    maxUnavailable: ""
+  thanosIngress:
+    enabled: false
+    annotations: {}
+    labels: {}
+    servicePort: 10901
+    nodePort: 30901
+    hosts: []
+    paths: []
+    tls: []
+  extraSecret:
+    annotations: {}
+    data: {}
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+    - prometheus.taicang.local
+    paths:
+    - /
+  ingressPerReplica:
+    enabled: false
+    annotations: {}
+    labels: {}
+    hostPrefix: ""
+    hostDomain: ""
+    paths: []
+    tlsSecretName: ""
+    tlsSecretPerReplica:
+      enabled: false
+      prefix: "prometheus"
+  podSecurityPolicy:
+    allowedCapabilities: []
+    allowedHostPaths: []
+    volumes: []
+  serviceMonitor:
+    interval: ""
+    selfMonitor: true
+    scheme: ""
+    tlsConfig: {}
+    bearerTokenFile:
+    metricRelabelings: []
+    relabelings: []
+  prometheusSpec:
+    disableCompaction: false
+    apiserverConfig: {}
+    scrapeInterval: ""
+    scrapeTimeout: ""
+    evaluationInterval: ""
+    listenLocal: false
+    enableAdminAPI: false
+    web: {}
+    enableFeatures: []
+    image:
+      repository: quay.io/prometheus/prometheus
+      tag: v2.35.0
+      sha: ""
+    tolerations: []
+    topologySpreadConstraints: []
+    alertingEndpoints: []
+    externalLabels: {}
+    replicaExternalLabelName: ""
+    replicaExternalLabelNameClear: false
+    prometheusExternalLabelName: ""
+    prometheusExternalLabelNameClear: false
+    externalUrl: ""
+    nodeSelector: {}
+    secrets:
+    - kube-etcd-client-certs
+    configMaps: []
+    query: {}
+    ruleNamespaceSelector: {}
+    ruleSelectorNilUsesHelmValues: true
+    ruleSelector: {}
+    serviceMonitorSelectorNilUsesHelmValues: true
+    serviceMonitorSelector: {}
+    serviceMonitorNamespaceSelector: {}
+    podMonitorSelectorNilUsesHelmValues: true
+    podMonitorSelector: {}
+    podMonitorNamespaceSelector: {}
+    probeSelectorNilUsesHelmValues: true
+    probeSelector: {}
+    probeNamespaceSelector: {}
+    retention: 10d
+    retentionSize: ""
+    walCompression: false
+    paused: false
+    replicas: 3
+    shards: 1
+    logLevel: info
+    logFormat: logfmt
+    routePrefix: /
+    podMetadata: {}
+    podAntiAffinity: ""
+    podAntiAffinityTopologyKey: kubernetes.io/hostname
+    affinity: {}
+    remoteRead: []
+    additionalRemoteRead: []
+    remoteWrite: []
+    additionalRemoteWrite: []
+    remoteWriteDashboards: false
+    resources:
+      limits:
+        cpu: "4"
+        memory: "4Gi"
+      requests:
+        cpu: "100m"
+        memory: "100Mi"
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: nas-nfs-provider
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Ti
+    volumes: []
+    volumeMounts: []
+    additionalScrapeConfigs: []
+    additionalScrapeConfigsSecret: {}
+    additionalPrometheusSecretsAnnotations: {}
+    additionalAlertManagerConfigs: []
+    additionalAlertManagerConfigsSecret: {}
+    additionalAlertRelabelConfigs: []
+    additionalAlertRelabelConfigsSecret: {}
+    securityContext:
+      runAsGroup: 2000
+      runAsNonRoot: true
+      runAsUser: 1000
+      fsGroup: 2000
+    priorityClassName: ""
+    thanos: {}
+    containers: []
+    initContainers: []
+    portName: "http-web"
+    arbitraryFSAccessThroughSMs: false
+    overrideHonorLabels: false
+    overrideHonorTimestamps: false
+    ignoreNamespaceSelectors: false
+    enforcedNamespaceLabel: ""
+    prometheusRulesExcludedFromEnforce: []
+    queryLogFile: false
+    enforcedSampleLimit: false
+    enforcedTargetLimit: false
+    enforcedLabelLimit: false
+    enforcedLabelNameLengthLimit: false
+    enforcedLabelValueLengthLimit: false
+    allowOverlappingBlocks: false
+  additionalRulesForClusterRole: []
+  additionalServiceMonitors: []
+  additionalPodMonitors: []

@@ -1,0 +1,24 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/name: kube-prometheus
+    app.kubernetes.io/part-of: kube-prometheus
+    prometheus: k8s
+    role: alert-rules
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-kubernetes-system-kube-proxy
+  namespace: monitoring
+spec:
+  groups:
+  - name: kubernetes-system-kube-proxy
+    rules:
+    - alert: KubeProxyDown
+      annotations:
+        description: 'KubeProxy 已从 Prometheus 目标发现中消失。'
+        runbook_url: 'https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeproxydown'
+        summary: '目标已从 Prometheus 目标发现中消失。'
+      expr: absent(up{job="kube-proxy"} == 1)
+      for: 15m
+      labels:
+        severity: critical
