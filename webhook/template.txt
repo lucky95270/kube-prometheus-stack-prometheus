@@ -37,7 +37,7 @@ Kubernetes 集群恢复通知
 🧭【结束时间】{{ GetCSTtime $alert.endsAt }} 
 🏷️【命名空间】{{ $alert.labels.namespace }} 
 📡【实例名称】{{ $alert.labels.host }}{{ $alert.labels.pod }}{{ $instance }} 
-🔄【实例控制器类型】{{ $controllerType | title }}
+🔄【实例类型】{{ $controllerType | title }}
 📝【告警详情】{{ $alert.annotations.message }}{{ $alert.annotations.description }};{{ $alert.annotations.summary }}
 
 [*** 点我屏蔽该告警]({{$externalURL}}/#/silences/new?filter=%7B{{SplitString $urimsg 0 -3}}%7D)
@@ -51,7 +51,7 @@ Kubernetes 集群告警通知
 🧭【开始时间】{{ GetCSTtime $alert.startsAt }} 
 🏷️【命名空间】{{ $alert.labels.namespace }} 
 📡【实例名称】{{ $alert.labels.host }}{{ $alert.labels.pod }}{{ $instance }} 
-🔄【实例控制器类型】{{ $controllerType | title }}
+🔄【实例类型】{{ $controllerType | title }}
 📝【告警详情】{{ $alert.annotations.message }}{{ $alert.annotations.description }};{{ $alert.annotations.summary }}
 
 [*** 点我屏蔽该告警]({{$externalURL}}/#/silences/new?filter=%7B{{SplitString $urimsg 0 -3}}%7D)
