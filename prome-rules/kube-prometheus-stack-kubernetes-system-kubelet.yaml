@@ -70,17 +70,16 @@ spec:
       for: 5m
       labels:
         severity: warning
-    - alert: KubeletPodStartUpLatencyHigh
-      annotations:
-        description: Kubelet Pod 启动的99百分位延迟在节点 {{ $labels.node }} 上为 {{ $value }} 秒。
-        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeletpodstartuplatencyhigh 
-        summary: Kubelet Pod 启动延迟过高。
-      expr: histogram_quantile(0.99, sum(rate(kubelet_pod_worker_duration_seconds_bucket{job="kubelet", metrics_path="/metrics"}[5m])) by (cluster, instance, le)) * on(cluster, instance)
-        group_left(node) kubelet_node_name{job="kubelet", metrics_path="/metrics"}
-        > 60
-      for: 15m
-      labels:
-        severity: warning
+#    - alert: KubeletPodStartUpLatencyHigh
+#      annotations:
+#        description: Kubelet Pod 启动的99百分位延迟在节点 {{ $labels.node }} 上为 {{ $value }} 秒。
+#        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeletpodstartuplatencyhigh 
+#        summary: Kubelet Pod 启动延迟过高。
+#      expr: histogram_quantile(0.99, sum(rate(kubelet_pod_worker_duration_seconds_bucket{job="kubelet", metrics_path="/metrics"}[5m])) by (cluster, instance, le)) 
+#        * on(cluster, instance) group_left(node) label_replace(kubelet_node_name{job="kubelet", metrics_path="/metrics"}, "service", "", "service", "kube-prometheus-stack-kubelet") > 60
+#      for: 15m
+#      labels:
+#        severity: warning
     - alert: KubeletClientCertificateExpiration
       annotations:
         description: 节点 {{ $labels.node }} 上的 Kubelet 客户端证书将在 {{ $value | humanizeDuration }} 后过期。
