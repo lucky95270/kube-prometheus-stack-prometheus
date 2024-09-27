@@ -59,46 +59,54 @@ alertmanager:
     maxUnavailable: ""
   config:
     global:
-       #163服务器
-       smtp_smarthost: 'smtp.163.com:465'
-       #发邮件的邮箱
-       smtp_from: 'xxxxxxxxxxxxx@163.com'
-       #发邮件的邮箱用户名，也就是你的邮箱
-       smtp_auth_username: 'xxxxxxxxxxxxx@163.com'
-       #发邮件的邮箱密码
-       smtp_auth_password: 'xxxxxxxxxxxxxxxxx'
-       #进行tls验证
-       smtp_require_tls: false
-       #超时时间
-       resolve_timeout: 10m 
+      resolve_timeout: 10m
+      smtp_from: xiahediyijun@163.com
+      smtp_smarthost: smtp.163.com:465
+      smtp_auth_username: xiahediyijun@163.com
+      smtp_auth_password: xxxxxxxxxxxxxxxxxxxx
+      smtp_require_tls: false
+
     route:
-       group_by: ['alertname']
-       #当收到告警的时候，等待group_wait配置的时间，看是否还有告警，如果有就一起发出去
-       group_wait: '10s'
-       #如果上次告警信息发送成功，此时又来了一个新的告警数据，则需要等待group_interval配置的时间才可以发送出去
-       group_interval: '10s'
-       #如果上次告警信息发送成功，且问题没有解决，则等待repeat_interval配置的时间再次发送告警数据
-       repeat_interval: '2h'
-       #全局报警组，这个参数是必选的
-       receiver: 'all'
-    receivers:
-      - name: 'all'
-        email_configs:
-          - to: 'xiahediyijun@163.com'
-            html: '{{ template "email.to.html" . }}'
-            headers:
-              subject: 'Kubernetes集群告警来信: {{ .CommonAnnotations.summary }}'
-        webhook_configs:
-          - url: 'http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxx'
+      group_by: ['alertname', 'namespace', 'instance']
+      group_wait: 30s                      # 延长等待时间，避免小的间隔重复发送
+      group_interval: 5m                   # 延长告警分组时间，减少告警频繁发送
+      repeat_interval: 4h                  # 告警重复发送间隔设为4小时
+      receiver: critical-alerts            # 默认接收器为 critical-alerts
+      routes:
+      - match:
+          severity: critical               # 严重告警单独处理
+        receiver: critical-alerts
+        group_interval: 1m                 # 严重告警可以更频繁地发送
+        repeat_interval: 2h
+      - match:
+          severity: warning                # 警告级别告警
+        receiver: warning-alerts
+        repeat_interval: 6h                # 警告级别告警重复时间更长
+      - match:
+          severity: info                   # 正常级别告警
+        receiver: info-alerts
+        repeat_interval: 12h               # 正常级别告警重复时间更长
+
     inhibit_rules:
       - source_match:
-          severity: 'info'
+          severity: 'critical'             # 抑制较低级别的告警，避免重复
         target_match:
-          severity: 'warning|critical'
-        equal: ['alertname', 'namespace']
-    # 指定模板目录
+          severity: 'warning'
+        equal: ['alertname', 'namespace', 'instance']
+
+    receivers:
+      - name: critical-alerts               # 严重告警专用接收器
+        webhook_configs:
+          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      - name: warning-alerts                # 警告告警专用接收器
+        webhook_configs:
+          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      - name: info-alerts                   # 正常告警专用接收器
+        webhook_configs:
+          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
     templates:
-      - '/etc/alertmanager/template/*.tmpl'
+      - /etc/alertmanager/template/*.tmpl
   tplConfig: false
   templateFiles: {}
   ingress:
