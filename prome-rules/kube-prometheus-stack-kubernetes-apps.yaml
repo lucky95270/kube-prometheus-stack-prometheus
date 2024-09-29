@@ -19,9 +19,10 @@ spec:
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodimagepullbackoff
         summary: Pod 在拉取镜像时遇到问题。
       expr: |-
-        sum by (namespace, pod, container, image, node, pod_ip, created_by_kind) (
+        sum by (namespace, pod, container, image, node, pod_ip) (
           kube_pod_container_status_waiting_reason{reason="ImagePullBackOff", job="kube-state-metrics", namespace=~".*"}
-        ) * on(namespace, pod) group_left(node, pod_ip, created_by_kind) kube_pod_info
+        ) * on(namespace, pod) group_left(node, pod_ip) kube_pod_info
+        * on(namespace, pod, container) group_left(image) kube_pod_container_info
         > 0
       for: 15m
       labels:
@@ -32,9 +33,9 @@ spec:
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodcrashlooping
         summary: Pod 正在崩溃循环。
       expr: |-
-        sum by (namespace, pod, container, node, pod_ip, created_by_kind) (
+        sum by (namespace, pod, container, node, pod_ip) (
           kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace=~".*"}
-        ) * on(namespace, pod) group_left(node, pod_ip, created_by_kind) kube_pod_info
+        ) * on(namespace, pod) group_left(node, pod_ip) kube_pod_info
         > 0
       for: 15m
       labels:
@@ -45,11 +46,11 @@ spec:
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodnotready
         summary: Pod 已经超过15分钟处于非就绪状态。
       expr: |-
-        sum by (namespace, pod, node, pod_ip, created_by_kind) (
+        sum by (namespace, pod, node, pod_ip) (
           max by(namespace, pod) (
             kube_pod_status_phase{job="kube-state-metrics", namespace=~".*", phase=~"Pending|Unknown"}
           )
-        ) * on(namespace, pod) group_left(node, pod_ip, created_by_kind) kube_pod_info
+        ) * on(namespace, pod) group_left(node, pod_ip) kube_pod_info
         > 0
       for: 15m
       labels:
@@ -179,12 +180,6 @@ spec:
     - alert: KubeContainerWaiting
       annotations:
         description: |
-          命名空间: {{ $labels.namespace }}
-          Pod: {{ $labels.pod }}
-          容器: {{ $labels.container }}
-          在节点: {{ $labels.node }}
-          Pod IP: {{ $labels.pod_ip }}
-    
           该容器已在等待状态超过 1 小时，原因可能包括:
           - 拉取镜像失败（ImagePullBackOff）
           - 依赖服务未就绪
@@ -197,9 +192,9 @@ spec:
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecontainerwaiting
         summary: Pod 容器在等待状态超过 1 小时，可能存在问题。
       expr: |
-        sum by (namespace, pod, container, node, pod_ip, created_by_kind) (
+        sum by (namespace, pod, container, node, pod_ip) (
           kube_pod_container_status_waiting_reason{job="kube-state-metrics", namespace=~".*"}
-        ) * on(namespace, pod) group_left(node, pod_ip, created_by_kind) kube_pod_info
+        ) * on(namespace, pod) group_left(node, pod_ip) kube_pod_info
         > 0
       for: 1h
       labels:
