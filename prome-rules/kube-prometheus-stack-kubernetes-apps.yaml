@@ -13,30 +13,44 @@ spec:
   groups:
   - name: kubernetes-apps
     rules:
+    - alert: KubePodImagePullBackOff
+      annotations:
+        description: '命名空间: {{ $labels.namespace }} 中的 Pod: {{ $labels.pod }} 容器: ({{ $labels.container }}) 在节点 {{ $labels.node }} Pod_IP: {{ $labels.pod_ip }} 处于等待状态（原因："ImagePullBackOff"），使用的镜像为: {{ $labels.image }}。'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodimagepullbackoff
+        summary: Pod 在拉取镜像时遇到问题。
+      expr: |-
+        sum by (namespace, pod, container, image, node, pod_ip) (
+          kube_pod_container_status_waiting_reason{reason="ImagePullBackOff", job="kube-state-metrics", namespace=~".*"}
+        ) * on(namespace, pod) group_left(node, pod_ip) kube_pod_info
+        > 0
+      for: 15m
+      labels:
+        severity: warning
     - alert: KubePodCrashLooping
       annotations:
-        description: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container
-          }}) 处于等待状态（原因："CrashLoopBackOff"）。'
-        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodcrashlooping 
+        description: '命名空间: {{ $labels.namespace }} 中的 Pod: {{ $labels.pod }} 容器: ({{ $labels.container }}) 在节点 {{ $labels.node }} Pod_IP: {{ $labels.pod_ip }} 处于等待状态（原因："CrashLoopBackOff"）需要查看容器日志。'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodcrashlooping
         summary: Pod 正在崩溃循环。
-      expr: max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff",
-        job="kube-state-metrics", namespace=~".*"}[5m]) >= 1
+      expr: |-
+        sum by (namespace, pod, container, node, pod_ip) (
+          kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace=~".*"}
+        ) * on(namespace, pod) group_left(node, pod_ip) kube_pod_info
+        > 0
       for: 15m
       labels:
         severity: warning
     - alert: KubePodNotReady
       annotations:
-        description: Pod {{ $labels.namespace }}/{{ $labels.pod }} 已经超过15分钟处于非就绪状态。
-        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodnotready 
+        description: '命名空间: {{ $labels.namespace }} 中的 Pod: {{ $labels.pod }} 容器: ({{ $labels.container }}) 在节点 {{ $labels.node }} Pod_IP: {{ $labels.pod_ip }} 处于非就绪状态'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodnotready
         summary: Pod 已经超过15分钟处于非就绪状态。
       expr: |-
-        sum by (namespace, pod) (
+        sum by (namespace, pod, node, pod_ip) (
           max by(namespace, pod) (
             kube_pod_status_phase{job="kube-state-metrics", namespace=~".*", phase=~"Pending|Unknown"}
-          ) * on(namespace, pod) group_left(owner_kind) topk by(namespace, pod) (
-            1, max by(namespace, pod, owner_kind) (kube_pod_owner{owner_kind!="Job"})
           )
-        ) > 0
+        ) * on(namespace, pod) group_left(node, pod_ip) kube_pod_info
+        > 0
       for: 15m
       labels:
         severity: warning
@@ -164,11 +178,29 @@ spec:
         severity: warning
     - alert: KubeContainerWaiting
       annotations:
-        description: 命名空间 {{ $labels.namespace }} 中的 pod/{{ $labels.pod }} 在容器 {{ $labels.container}} 已经等待超过1小时。
-        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecontainerwaiting 
-        summary: Pod 容器等待超过1小时
-      expr: sum by (namespace, pod, container) (kube_pod_container_status_waiting_reason{job="kube-state-metrics",
-        namespace=~".*"}) > 0
+        description: |
+          命名空间: {{ $labels.namespace }}
+          Pod: {{ $labels.pod }}
+          容器: {{ $labels.container }}
+          在节点: {{ $labels.node }}
+          Pod IP: {{ $labels.pod_ip }}
+    
+          该容器已在等待状态超过 1 小时，原因可能包括:
+          - 拉取镜像失败（ImagePullBackOff）
+          - 依赖服务未就绪
+          - 资源不足（CPU/内存）
+          - PVC 存储未挂载
+          - volumemounts 挂载错误
+          - secret 密钥挂载错误
+    
+          请检查容器的状态和事件日志，以确定具体原因。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecontainerwaiting
+        summary: Pod 容器在等待状态超过 1 小时，可能存在问题。
+      expr: |
+        sum by (namespace, pod, container, node, pod_ip) (
+          kube_pod_container_status_waiting_reason{job="kube-state-metrics", namespace=~".*"}
+        ) * on(namespace, pod) group_left(node, pod_ip) kube_pod_info
+        > 0
       for: 1h
       labels:
         severity: warning
