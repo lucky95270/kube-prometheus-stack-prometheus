@@ -1,6 +1,6 @@
 {{ $externalURL := .externalURL -}}
 {{ $alerts := .alerts -}}
-{{ $grafanaURL := "http://grafana.taicang.local/d/3pdYh_eIk/node-exporter-nodes?orgId=1&refresh=30s" -}}
+{{ $grafanaURL := "http://grafana.meta42.indc.dev.vnet.com/d/200ac8fdbfbb74b39aff88118e4d1c2c/kubernetes-compute-resources-node-pods?orgId=1&refresh=10s" -}}
 {{ range $alert := $alerts -}}
   {{ $groupKey := printf "%s|%s" $alert.labels.alertname $alert.status -}}
   {{ $urimsg := "" -}}
@@ -26,7 +26,7 @@
     {{ $controllerType = "pods" -}}
   {{ end -}}
 
-  {{ $kubesphereURL := printf "http://kubesphere.taicang.local/clusters/default/projects/%s/%s/%s/resource-status" $namespace $controllerType $instance -}}
+  {{ $kubesphereURL := printf "http://172.16.246.102:30880/clusters/default/projects/%s/%s/%s/resource-status" $namespace $controllerType $instance -}}
 
   {{ if eq $alert.status "resolved" -}}
 Kubernetes 集群恢复通知
@@ -36,10 +36,10 @@ Kubernetes 集群恢复通知
 🧭【开始时间】{{ GetCSTtime $alert.startsAt }} 
 🧭【结束时间】{{ GetCSTtime $alert.endsAt }} 
 🏷️【命名空间】{{ $alert.labels.namespace }} 
-📡【实例名称】{{ $alert.labels.host }}{{ $alert.labels.pod }}{{ $instance }} 
-🌐【实例地址】{{ $alert.labels.instance }} 
+📡【实例名称】{{ $alert.labels.pod }} 
+🌐【实例地址】{{ $alert.labels.pod_ip }} 
 🖥️【实例节点】{{ $alert.labels.node }} 
-🔄【实例类型】{{ $controllerType | title }}
+🔄【实例控制器类型】{{ $controllerType | title }}
 📝【告警详情】{{ $alert.annotations.message }}{{ $alert.annotations.description }};{{ $alert.annotations.summary }}
 
 [*** 点我屏蔽该告警]({{$externalURL}}/#/silences/new?filter=%7B{{SplitString $urimsg 0 -3}}%7D)
@@ -52,8 +52,8 @@ Kubernetes 集群告警通知
 🔥【告警状态】{{ $alert.status }} 
 🧭【开始时间】{{ GetCSTtime $alert.startsAt }} 
 🏷️【命名空间】{{ $alert.labels.namespace }} 
-📡【实例名称】{{ $alert.labels.host }}{{ $alert.labels.pod }}{{ $instance }} 
-🌐【实例地址】{{ $alert.labels.instance }} 
+📡【实例名称】{{ $alert.labels.pod }} 
+🌐【实例地址】{{ $alert.labels.pod_ip }} 
 🖥️【实例节点】{{ $alert.labels.node }} 
 🔄【实例类型】{{ $controllerType | title }}
 📝【告警详情】{{ $alert.annotations.message }}{{ $alert.annotations.description }};{{ $alert.annotations.summary }}
