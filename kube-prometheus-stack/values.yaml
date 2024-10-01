@@ -335,14 +335,14 @@ kubeControllerManager:
   endpoints: []
   service:
     enabled: true
-    port: null
-    targetPort: null
+    port: 10257
+    targetPort: 10257
   serviceMonitor:
     enabled: true
     interval: ""
     proxyUrl: ""
-    https: null
-    insecureSkipVerify: null
+    https: true
+    insecureSkipVerify: true
     serverName: null
     metricRelabelings: []
     relabelings: []
@@ -400,14 +400,14 @@ kubeScheduler:
   endpoints: []
   service:
     enabled: true
-    port: null
-    targetPort: null
+    port: 10259
+    targetPort: 10259
   serviceMonitor:
     enabled: true
     interval: ""
     proxyUrl: ""
-    https: null
-    insecureSkipVerify: null
+    https: true
+    insecureSkipVerify: true
     serverName: null
     metricRelabelings: []
     relabelings: []
@@ -702,6 +702,7 @@ prometheus:
       repository: quay.io/prometheus/prometheus
       tag: v2.35.0
       sha: ""
+    # 污点容忍
     tolerations: []
     topologySpreadConstraints: []
     alertingEndpoints: []
@@ -711,7 +712,9 @@ prometheus:
     prometheusExternalLabelName: ""
     prometheusExternalLabelNameClear: false
     externalUrl: ""
+    # 可以选择性的将 Prometheus 部署到一台特殊的服务器上
     nodeSelector: {}
+    # 创建的 etcd 证书
     secrets:
     - kube-etcd-client-certs
     configMaps: []
@@ -741,18 +744,28 @@ prometheus:
     podAntiAffinity: ""
     podAntiAffinityTopologyKey: kubernetes.io/hostname
     affinity: {}
+   # affinity:
+   #   nodeAffinity:
+   #     requiredDuringSchedulingIgnoredDuringExecution:
+   #       nodeSelectorTerms:    # 标识调度到 k8s-app=prometheus 的 node 节点上
+   #         - matchExpressions:
+   #             - key: k8s-app  # node 标签 key
+   #               operator: In
+   #               values:
+   #                 - prometheus  # node 标签 value
     remoteRead: []
     additionalRemoteRead: []
     remoteWrite: []
     additionalRemoteWrite: []
     remoteWriteDashboards: false
+    # 资源请求限制要根据实际情况来定，不然很容易就oomkilled，如果集群庞大，节点众多，指标也就会多，Prometheus采集的时候会消耗巨大的内存
     resources:
       limits:
         cpu: "4"
-        memory: "4Gi"
+        memory: "16Gi"
       requests:
-        cpu: "100m"
-        memory: "100Mi"
+        cpu: "2"
+        memory: "8Gi"
     storageSpec:
       volumeClaimTemplate:
         spec:
