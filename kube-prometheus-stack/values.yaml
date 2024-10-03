@@ -103,15 +103,15 @@ alertmanager:
     receivers:
       - name: critical-alerts  # 严重告警接收器
         webhook_configs:
-          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs-critical&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxx  # Fe
+          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxx  # Fe
 ishu Webhook 地址，用于接收严重告警通知
       - name: warning-alerts  # 警告告警接收器
         webhook_configs:
-          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs-warning&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxxx  # Fei
+          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxxx  # Fei
 shu Webhook 地址，用于接收警告告警通知
       - name: info-alerts  # 信息告警接收器
         webhook_configs:
-          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs-info&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxx  # Feishu
+          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxx  # Feishu
  Webhook 地址，用于接收信息告警通知
   
     templates:
