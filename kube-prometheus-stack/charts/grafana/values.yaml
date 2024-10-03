@@ -60,9 +60,10 @@ downloadDashboards:
 podPortName: grafana
 service:
   enabled: true
-  type: ClusterIP
+  type: NodePort
   port: 80
   targetPort: 3000
+  nodePort: 32030
   annotations: {}
   labels: {}
   portName: service
@@ -236,6 +237,7 @@ imageRenderer:
     portName: 'http'
     port: 8081
     targetPort: 8081
+    nodePort: 32030
   grafanaProtocol: http
   grafanaSubPath: ""
   podPortName: http
