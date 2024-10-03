@@ -721,6 +721,7 @@ prometheus:
     replicaExternalLabelNameClear: false
     prometheusExternalLabelName: ""
     prometheusExternalLabelNameClear: false
+    # 告警页面URL;默认为 ingress 请求 hosts,如果使用 nodeport 可以是设置为 ip + 端口
     externalUrl: ""
     # 可以选择性的将 Prometheus 部署到一台特殊的服务器上
     nodeSelector: {}
