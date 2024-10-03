@@ -54,7 +54,7 @@ spec:
         summary: 节点内存即将耗尽;
       expr: |-
         (1 - (node_memory_MemAvailable_bytes{job="node-exporter"} / node_memory_MemTotal_bytes{job="node-exporter"}))
-            * on(instance) group_left(nodename) node_uname_info * 100 > 70
+            * on(instance) group_left(nodename) node_uname_info * 100 > 80
       for: 5m
       labels:
         severity: critical
