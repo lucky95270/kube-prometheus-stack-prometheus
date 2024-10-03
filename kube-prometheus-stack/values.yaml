@@ -184,6 +184,7 @@ alertmanager:
           resources:
             requests:
               storage: 1Ti
+    # 告警页面URL;默认为 ingress 请求 hosts,如果使用 nodeport 可以是设置为 ip + 端口
     externalUrl:
     routePrefix: /
     paused: false
