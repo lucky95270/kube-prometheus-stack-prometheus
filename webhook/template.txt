@@ -1,6 +1,6 @@
 {{ $alertmanagerURL := "http://192.168.233.32:32093" -}}
 {{ $alerts := .alerts -}}
-{{ $grafanaURL := "http://http://192.168.233.32:30300/d/200ac8fdbfbb74b39aff88118e4d1c2c/kubernetes-compute-resources-node-pods?orgId=1&refresh=10s" -}}
+{{ $grafanaURL := "http://192.168.233.32:30300/d/200ac8fdbfbb74b39aff88118e4d1c2c/kubernetes-compute-resources-node-pods?orgId=1&refresh=10s" -}}
 {{ range $alert := $alerts -}}
   {{ $groupKey := printf "%s|%s" $alert.labels.alertname $alert.status -}}
   {{ $urimsg := "" -}}
