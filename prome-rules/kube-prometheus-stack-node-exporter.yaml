@@ -40,21 +40,23 @@ spec:
     - alert: 节点内存使用率大于70%
       annotations:
         description: 在节点名 {{ $labels.nodename }} 节点IP ({{ $labels.instance }}) 上内存使用率为 {{ printf "%.2f" $value }}%
-        summary: 节点内存即将耗尽;
+        summary: 节点内存即将耗尽
       expr: |-
-        (1 - (node_memory_MemAvailable_bytes{job="node-exporter"} / node_memory_MemTotal_bytes{job="node-exporter"}))
-            * on(instance) group_left(nodename) node_uname_info * 100 > 70
+        (1 - ((node_memory_MemFree_bytes{job="node-exporter"} + node_memory_Cached_bytes{job="node-exporter"} + node_memory_Buffers_bytes{job="node-exporter"})
+              / node_memory_MemTotal_bytes{job="node-exporter"}))
+        * on(instance) group_left(nodename) node_uname_info * 100 > 70
       for: 5m
       labels:
         severity: warning
 
     - alert: 节点内存使用率大于80%
       annotations:
-        description: 在节点名 {{ $labels.nodename }} 节点IP ({{ $labels.instance }}) 上内存使用率为 {{ printf "%.2f" $value }}%.节点即将面临POD驱逐风险
-        summary: 节点内存即将耗尽;
+        description: 在节点名 {{ $labels.nodename }} 节点IP ({{ $labels.instance }}) 上内存使用率为 {{ printf "%.2f" $value }}%. 节点即将面临POD驱逐风险
+        summary: 节点内存即将耗尽
       expr: |-
-        (1 - (node_memory_MemAvailable_bytes{job="node-exporter"} / node_memory_MemTotal_bytes{job="node-exporter"}))
-            * on(instance) group_left(nodename) node_uname_info * 100 > 80
+        (1 - ((node_memory_MemFree_bytes{job="node-exporter"} + node_memory_Cached_bytes{job="node-exporter"} + node_memory_Buffers_bytes{job="node-exporter"})
+              / node_memory_MemTotal_bytes{job="node-exporter"}))
+        * on(instance) group_left(nodename) node_uname_info * 100 > 80
       for: 5m
       labels:
         severity: critical
