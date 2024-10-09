@@ -42,19 +42,19 @@ spec:
         description: 在节点名 {{ $labels.nodename }} 节点IP ({{ $labels.instance }}) 上内存使用率为 {{ printf "%.2f" $value }}%
         summary: 节点内存即将耗尽
       expr: |-
-        (1 - ((node_memory_MemFree_bytes{job="node-exporter"} + node_memory_Cached_bytes{job="node-exporter"} + node_memory_Buffers_bytes{job="node-exporter"})
+        (1 - ((node_memory_MemFree_bytes{job="node-exporter"} + node_memory_Cached_bytes{job="node-exporter"} + node_memory_Buffers_bytes{job="node-exporter"}) 
               / node_memory_MemTotal_bytes{job="node-exporter"}))
         * on(instance) group_left(nodename) node_uname_info * 100 > 70
       for: 5m
       labels:
         severity: warning
-
+    
     - alert: 节点内存使用率大于80%
       annotations:
         description: 在节点名 {{ $labels.nodename }} 节点IP ({{ $labels.instance }}) 上内存使用率为 {{ printf "%.2f" $value }}%. 节点即将面临POD驱逐风险
         summary: 节点内存即将耗尽
       expr: |-
-        (1 - ((node_memory_MemFree_bytes{job="node-exporter"} + node_memory_Cached_bytes{job="node-exporter"} + node_memory_Buffers_bytes{job="node-exporter"})
+        (1 - ((node_memory_MemFree_bytes{job="node-exporter"} + node_memory_Cached_bytes{job="node-exporter"} + node_memory_Buffers_bytes{job="node-exporter"}) 
               / node_memory_MemTotal_bytes{job="node-exporter"}))
         * on(instance) group_left(nodename) node_uname_info * 100 > 80
       for: 5m
@@ -93,93 +93,89 @@ spec:
 
     - alert: 节点文件系统几乎超出存储空间
       annotations:
-        description: 在 {{ $labels.instance }} 上的 {{ $labels.device }} 文件系统中只剩下 {{ printf "%.2f" $value }}% 的可用空间。
+        description: '节点 {{ $labels.nodename }} (实例: {{ $labels.instance }}, 设备: {{ $labels.device }}) 文件系统只剩下 {{ printf "%.2f" $value }}% 的可用空间。'
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemalmostoutofspace
-        summary: 文件系统只剩下不到40%的空间;
+        summary: 文件系统只剩下不到40%的空间,
       expr: |-
         (
-          node_filesystem_avail_bytes{job="node-exporter",fstype!=""} / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 40
+          node_filesystem_avail_bytes{job="node-exporter",fstype!=""} 
+          / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 40
         and
           node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
         )
+        * on (instance) group_left(nodename) node_uname_info
       for: 30m
       labels:
         severity: warning
 
     - alert: 节点文件系统几乎超出存储空间
       annotations:
-        description: 在 {{ $labels.instance }} 上的 {{ $labels.device }} 文件系统中只剩下 {{ printf "%.2f" $value }}% 的可用空间。
+        description: '节点 {{ $labels.nodename }} (实例: {{ $labels.instance }}, 设备: {{ $labels.device }}) 文件系统只剩下 {{ printf "%.2f" $value }}% 的可用空间。'
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemalmostoutofspace
-        summary: 文件系统只剩下不到30%的空间;
+        summary: 文件系统只剩下不到30%的空间,
       expr: |-
         (
-          node_filesystem_avail_bytes{job="node-exporter",fstype!=""} / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 30
+          node_filesystem_avail_bytes{job="node-exporter",fstype!=""}
+          / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 30
         and
           node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
         )
+        * on (instance) group_left(nodename) node_uname_info
       for: 30m
       labels:
         severity: warning
 
     - alert: 节点文件系统几乎超出存储空间
       annotations:
-        description: 在 {{ $labels.instance }} 上的 {{ $labels.device }} 文件系统中只剩下 {{ printf "%.2f" $value }}% 的可用空间，节点即将面临POD驱逐风险
+        description: '节点 {{ $labels.nodename }} (实例: {{ $labels.instance }}, 设备: {{ $labels.device }}) 文件系统只剩下 {{ printf "%.2f" $value }}% 的可用空间, POD即将面临被驱逐'
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemalmostoutofspace
-        summary: 文件系统只剩下不到20%的空间;
+        summary: 文件系统只剩下不到20%的空间,
       expr: |-
         (
-          node_filesystem_avail_bytes{job="node-exporter",fstype!=""} / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 20
+          node_filesystem_avail_bytes{job="node-exporter",fstype!=""}
+          / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 20
         and
           node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
         )
+        * on (instance) group_left(nodename) node_uname_info
       for: 30m
       labels:
         severity: critical
 
     - alert: 节点文件系统几乎超出存储空间
       annotations:
-        description: 在 {{ $labels.instance }} 上的 {{ $labels.device }} 文件系统中只剩下 {{ printf "%.2f" $value }}% 的可用空间。
+        description: '节点 {{ $labels.nodename }} (实例: {{ $labels.instance }}, 设备: {{ $labels.device }}) 文件系统只剩下 {{ printf "%.2f" $value }}% 的可用空间, POD正在被驱逐'
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemalmostoutofspace
-        summary: 文件系统只剩下不到10%的空间;
+        summary: 文件系统只剩下不到10%的空间,
       expr: |-
         (
-          node_filesystem_avail_bytes{job="node-exporter",fstype!=""} / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 10
+          node_filesystem_avail_bytes{job="node-exporter",fstype!=""}
+          / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 10
         and
           node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
         )
+        * on (instance) group_left(nodename) node_uname_info
       for: 30m
       labels:
         severity: critical
 
     - alert: 节点文件系统几乎超出存储空间
       annotations:
-        description: 在 {{ $labels.instance }} 上的 {{ $labels.device }} 文件系统中只剩下 {{ printf "%.2f" $value }}% 的可用空间。
-        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemalmostoutofspace 
-        summary: 文件系统只剩下不到5%的空间;
+        description: '节点 {{ $labels.nodename }} (实例: {{ $labels.instance }}, 设备: {{ $labels.device }}) 文件系统只剩下 {{ printf "%.2f" $value }}% 的可用空间, POD正在被驱逐'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemalmostoutofspace
+        summary: 文件系统只剩下不到5%的空间,
       expr: |-
         (
-          node_filesystem_avail_bytes{job="node-exporter",fstype!=""} / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 5
+          node_filesystem_avail_bytes{job="node-exporter",fstype!=""}
+          / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 5
         and
           node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
         )
+        * on (instance) group_left(nodename) node_uname_info
       for: 30m
       labels:
         severity: critical
 
-    - alert: 节点文件系统几乎超出存储空间
-      annotations:
-        description: 在 {{ $labels.instance }} 上的 {{ $labels.device }} 文件系统中只剩下 {{ printf "%.2f" $value }}% 的可用空间。
-        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemalmostoutofspace 
-        summary: 文件系统只剩下不到3%的空间;
-      expr: |-
-        (
-          node_filesystem_avail_bytes{job="node-exporter",fstype!=""} / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 3
-        and
-          node_filesystem_readonly{job="node-exporter",fstype!=""} == 0
-        )
-      for: 30m
-      labels:
-        severity: critical
     - alert: NodeFilesystemFilesFillingUp
       annotations:
         description: 在 {{ $labels.instance }} 上的 {{ $labels.device }} 文件系统中只剩下 {{ printf "%.2f" $value }}% 的可用inode，并且正在迅速填满。
