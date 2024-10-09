@@ -13,7 +13,7 @@ spec:
   groups:
   - name: alertmanager.rules
     rules:
-    - alert: AlertmanagerFailedReload
+    - alert: Alertmanager 重新加载失败
       annotations:
         description: '配置加载失败，影响到 {{ $labels.namespace }}/{{ $labels.pod}}。'
         runbook_url: 'https://runbooks.prometheus-operator.dev/runbooks/alertmanager/alertmanagerfailedreload'
@@ -25,7 +25,7 @@ spec:
       for: 10m
       labels:
         severity: critical
-    - alert: AlertmanagerMembersInconsistent
+    - alert: Alertmanager 副本数量成员不一致
       annotations:
         description: 'Alertmanager {{ $labels.namespace }}/{{ $labels.pod}} 只发现了 {{ $value }} 个成员，而 {{$labels.job}} 集群中应有更多的成员。'
         runbook_url: 'https://runbooks.prometheus-operator.dev/runbooks/alertmanager/alertmanagermembersinconsistent'
@@ -39,7 +39,7 @@ spec:
       for: 15m
       labels:
         severity: critical
-    - alert: AlertmanagerFailedToSendAlerts
+    - alert: Alertmanager 发送警报失败
       annotations:
         description: 'Alertmanager {{ $labels.namespace }}/{{ $labels.pod}} 向 {{ $labels.integration }} 发送通知的失败率为 {{ $value | humanizePercentage }}。'
         runbook_url: 'https://runbooks.prometheus-operator.dev/runbooks/alertmanager/alertmanagerfailedtosendalerts'
@@ -54,7 +54,7 @@ spec:
       for: 5m
       labels:
         severity: warning
-    - alert: AlertmanagerClusterFailedToSendAlerts
+    - alert: Alertmanager 集群所有实例发送警报失败
       annotations:
         description: '从 {{$labels.job}} 集群中的任何实例向 {{ $labels.integration }} 发送的最小通知失败率为 {{ $value | humanizePercentage }}。'
         runbook_url: 'https://runbooks.prometheus-operator.dev/runbooks/alertmanager/alertmanagerclusterfailedtosendalerts'
@@ -69,22 +69,7 @@ spec:
       for: 5m
       labels:
         severity: critical
-    - alert: AlertmanagerClusterFailedToSendAlerts
-      annotations:
-        description: '从 {{$labels.job}} 集群中的任何实例向 {{ $labels.integration }} 发送的最小通知失败率为 {{ $value | humanizePercentage }}。'
-        runbook_url: 'https://runbooks.prometheus-operator.dev/runbooks/alertmanager/alertmanagerclusterfailedtosendalerts'
-        summary: '集群中的所有 Alertmanager 实例都未能向非关键集成发送通知。'
-      expr: |-
-        min by (namespace,service, integration) (
-          rate(alertmanager_notifications_failed_total{job="kube-prometheus-stack-alertmanager",namespace="monitoring", integration!~`.*`}[5m])
-        /
-          rate(alertmanager_notifications_total{job="kube-prometheus-stack-alertmanager",namespace="monitoring", integration!~`.*`}[5m])
-        )
-        > 0.01
-      for: 5m
-      labels:
-        severity: warning
-    - alert: AlertmanagerConfigInconsistent
+    - alert: Alertmanager 集群实例配置不一致
       annotations:
         description: '在 {{$labels.job}} 集群中的 Alertmanager 实例具有不同的配置。'
         runbook_url: 'https://runbooks.prometheus-operator.dev/runbooks/alertmanager/alertmanagerconfiginconsistent'
@@ -97,7 +82,7 @@ spec:
       for: 20m
       labels:
         severity: critical
-    - alert: AlertmanagerClusterDown
+    - alert: Alertmanager 集群实例关闭
       annotations:
         description: '在 {{$labels.job}} 集群中，有 {{ $value | humanizePercentage }} 的 Alertmanager 实例在过去5分钟内启动时间少于一半。'
         runbook_url: 'https://runbooks.prometheus-operator.dev/runbooks/alertmanager/alertmanagerclusterdown'
@@ -116,7 +101,7 @@ spec:
       for: 5m
       labels:
         severity: critical
-    - alert: AlertmanagerClusterCrashlooping
+    - alert: Alertmanager 集群实例循环重启
       annotations:
         description: '在 {{$labels.job}} 集群中，有 {{ $value | humanizePercentage }} 的 Alertmanager 实例在过去10分钟内至少重启了5次。'
         runbook_url: 'https://runbooks.prometheus-operator.dev/runbooks/alertmanager/alertmanagerclustercrashlooping'

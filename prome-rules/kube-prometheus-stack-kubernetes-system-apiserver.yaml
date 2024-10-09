@@ -13,7 +13,7 @@ spec:
   groups:
   - name: kubernetes-system-apiserver
     rules:
-    - alert: KubeClientCertificateExpiration
+    - alert: Kube 客户端证书
       annotations:
         description: 用于向 Kubernetes API 服务器进行身份验证的客户端证书将在不到 7.0 天后过期。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeclientcertificateexpiration 
@@ -23,7 +23,7 @@ spec:
         < 604800
       labels:
         severity: warning
-    - alert: KubeClientCertificateExpiration
+    - alert: Kube 客户端证书
       annotations:
         description: 用于向 Kubernetes API 服务器进行身份验证的客户端证书将在不到 24.0 小时后过期。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeclientcertificateexpiration 
@@ -33,7 +33,7 @@ spec:
         < 86400
       labels:
         severity: critical
-    - alert: KubeAggregatedAPIErrors
+    - alert: Kube API 服务错误
       annotations:
         description: Kubernetes 聚合 API {{ $labels.name }}/{{ $labels.namespace }} 报告了错误。在过去的 10 分钟内平均出现了 {{ $value | humanize }} 次不可用的情况。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeaggregatedapierrors 
@@ -42,7 +42,7 @@ spec:
         > 4
       labels:
         severity: warning
-    - alert: KubeAggregatedAPIDown
+    - alert: Kube API 服务部分关闭
       annotations:
         description: Kubernetes 聚合 API {{ $labels.name }}/{{ $labels.namespace }} 在过去 10 分钟内仅 {{ $value | humanize }}% 的时间可用。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeaggregatedapidown 
@@ -52,7 +52,7 @@ spec:
       for: 5m
       labels:
         severity: warning
-    - alert: KubeAPIDown
+    - alert: Kube API 服务全部关闭
       annotations:
         description: KubeAPI 已从 Prometheus 目标发现中消失。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeapidown 
@@ -61,7 +61,7 @@ spec:
       for: 15m
       labels:
         severity: critical
-    - alert: KubeAPITerminatedRequests
+    - alert: Kube API 服务终止接受请求
       annotations:
         description: Kubernetes API 服务器终止了 {{ $value | humanizePercentage }} 的传入请求。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeapiterminatedrequests 

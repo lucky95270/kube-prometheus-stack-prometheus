@@ -13,7 +13,7 @@ spec:
   groups:
   - name: kubernetes-storage
     rules:
-    - alert: KubePersistentVolumeFillingUp
+    - alert: Kube 持久化存储
       annotations:
         description: 由命名空间 {{ $labels.namespace }} 中的 {{ $labels.persistentvolumeclaim }} 声明的持久卷仅剩下 {{ $value | humanizePercentage }} 的空间。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumefillingup 
@@ -33,7 +33,7 @@ spec:
       for: 1m
       labels:
         severity: critical
-    - alert: KubePersistentVolumeFillingUp
+    - alert: Kube 持久化存储
       annotations:
         description: 根据最近的采样，命名空间 {{ $labels.namespace }} 中的 {{ $labels.persistentvolumeclaim }} 声明的持久卷预计在四天内填满。目前还有 {{ $value | humanizePercentage }} 可用。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumefillingup 
@@ -55,7 +55,8 @@ spec:
       for: 1h
       labels:
         severity: warning
-    - alert: KubePersistentVolumeInodesFillingUp
+
+    - alert: Kube 持久化存储
       annotations:
         description: 命名空间 {{ $labels.namespace }} 中的 {{ $labels.persistentvolumeclaim }} 声明的持久卷仅剩下 {{ $value | humanizePercentage }} 的空闲inode。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeinodesfillingup 
@@ -75,7 +76,7 @@ spec:
       for: 1m
       labels:
         severity: critical
-    - alert: KubePersistentVolumeInodesFillingUp
+    - alert: Kube 持久化存储 Inodes
       annotations:
         description: 根据最近的采样，命名空间 {{ $labels.namespace }} 中的 {{ $labels.persistentvolumeclaim }} 声明的持久卷预计在四天内耗尽inode。目前还有 {{ $value | humanizePercentage }} 的inode是空闲的。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeinodesfillingup 
@@ -97,7 +98,7 @@ spec:
       for: 1h
       labels:
         severity: warning
-    - alert: KubePersistentVolumeErrors
+    - alert: Kube 持久化存储错误
       annotations:
         description: 持久卷 {{ $labels.persistentvolume }} 的状态为 {{ $labels.phase }}。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepersistentvolumeerrors 

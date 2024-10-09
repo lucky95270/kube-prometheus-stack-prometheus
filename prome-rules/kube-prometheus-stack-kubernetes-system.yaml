@@ -13,17 +13,17 @@ spec:
   groups:
   - name: kubernetes-system
     rules:
-    - alert: KubeVersionMismatch
+    - alert: Kube 集群版本不一致
       annotations:
-        description: 运行中的 Kubernetes 组件有 {{ $value }} 个不同的语义版本。
+        description: 运行中的 Kubernetes 组件有 {{ $value }} 个不同的版本。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeversionmismatch 
-        summary: Kubernetes 组件运行着不同的语义版本。
+        summary: Kubernetes 组件运行着不同的版本。
       expr: count(count by (git_version) (label_replace(kubernetes_build_info{job!~"kube-dns|coredns"},"git_version","$1","git_version","(v[0-9]*.[0-9]*).*")))
         > 1
       for: 15m
       labels:
         severity: warning
-    - alert: KubeClientErrors
+    - alert: Kube 客户端错误
       annotations:
         description: Kubernetes API 服务器客户端 '{{ $labels.job }}/{{ $labels.instance }}' 正在经历 {{ $value | humanizePercentage }} 的错误率。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeclienterrors 

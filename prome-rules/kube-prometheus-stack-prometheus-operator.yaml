@@ -9,7 +9,7 @@ spec:
   groups:
   - name: prometheus-operator
     rules:
-    - alert: PrometheusOperatorListErrors
+    - alert: Prometheus操作符列表错误
       annotations:
         description: '控制器 {{$labels.controller}} 在 {{$labels.namespace}} 命名空间中执行列表操作时出错'
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus-operator/prometheusoperatorlisterrors 
@@ -20,7 +20,7 @@ spec:
       for: 15m
       labels:
         severity: warning
-    - alert: PrometheusOperatorWatchErrors
+    - alert: Prometheus操作符观察错误
       annotations:
         description: '控制器 {{$labels.controller}} 在 {{$labels.namespace}} 命名空间中执行监视操作时出错'
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus-operator/prometheusoperatorwatcherrors 
@@ -31,7 +31,7 @@ spec:
       for: 15m
       labels:
         severity: warning
-    - alert: PrometheusOperatorSyncFailed
+    - alert: Prometheus操作符同步失败
       annotations:
         description: '控制器 {{ $labels.controller }} 在 {{ $labels.namespace }} 命名空间中无法协调 {{ $value }} 个对象'
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus-operator/prometheusoperatorsyncfailed 
@@ -41,7 +41,7 @@ spec:
       for: 10m
       labels:
         severity: warning
-    - alert: PrometheusOperatorReconcileErrors
+    - alert: Prometheus操作符调和错误
       annotations:
         description: '{{ $value | humanizePercentage }} 的协调操作失败，影响了 {{ $labels.namespace }} 命名空间中的 {{ $labels.controller }} 控制器'
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus-operator/prometheusoperatorreconcileerrors 
@@ -52,7 +52,7 @@ spec:
       for: 10m
       labels:
         severity: warning
-    - alert: PrometheusOperatorNodeLookupErrors
+    - alert: Prometheus操作符节点查找错误
       annotations:
         description: '在 {{ $labels.namespace }} 命名空间中协调 Prometheus 时出错'
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus-operator/prometheusoperatornodelookuperrors 
@@ -62,7 +62,7 @@ spec:
       for: 10m
       labels:
         severity: warning
-    - alert: PrometheusOperatorNotReady
+    - alert: Prometheus操作符未就绪
       annotations:
         description: '{{ $labels.namespace }} 命名空间中的 Prometheus 操作符无法准备协调 {{ $labels.controller }} 资源'
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus-operator/prometheusoperatornotready 
@@ -71,7 +71,7 @@ spec:
       for: 5m
       labels:
         severity: warning
-    - alert: PrometheusOperatorRejectedResources
+    - alert: Prometheus操作符资源拒绝
       annotations:
         description: '{{ $labels.namespace }} 命名空间中的 Prometheus 操作符拒绝了 {{ printf "%0.0f" $value }} 个 {{ $labels.controller }}/{{ $labels.resource }} 资源'
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus-operator/prometheusoperatorrejectedresources 

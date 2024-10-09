@@ -13,7 +13,7 @@ spec:
   groups:
   - name: kubernetes-resources
     rules:
-    - alert: KubeCPUOvercommit
+    - alert: Kube Pod CPU 超额分配
       annotations:
         description: 集群为Pods超额分配了CPU资源请求{{ $value }} CPU份额，无法容忍节点故障。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecpuovercommit 
@@ -25,7 +25,7 @@ spec:
       for: 10m
       labels:
         severity: warning
-    - alert: KubeMemoryOvercommit
+    - alert: Kube Pod 内存 超额分配
       annotations:
         description: 集群为Pods超额分配了内存资源请求{{ $value | humanize }}字节，无法容忍节点故障。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubememoryovercommit 
@@ -37,7 +37,7 @@ spec:
       for: 10m
       labels:
         severity: warning
-    - alert: KubeCPUQuotaOvercommit
+    - alert: Kube 命名空间 CPU 超额分配
       annotations:
         description: 集群为命名空间超额分配了CPU资源请求。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecpuquotaovercommit 
@@ -50,7 +50,7 @@ spec:
       for: 5m
       labels:
         severity: warning
-    - alert: KubeMemoryQuotaOvercommit
+    - alert: Kube 命名空间内存超额分配
       annotations:
         description: 集群为命名空间超额分配了内存资源请求。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubememoryquotaovercommit 
@@ -63,7 +63,7 @@ spec:
       for: 5m
       labels:
         severity: warning
-    - alert: KubeQuotaAlmostFull
+    - alert: Kube 空间配额即将用完
       annotations:
         description: 命名空间{{ $labels.namespace }}正在使用其{{ $labels.resource }}配额的{{ $value | humanizePercentage }}。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubequotaalmostfull 
@@ -76,7 +76,7 @@ spec:
       for: 15m
       labels:
         severity: info
-    - alert: KubeQuotaFullyUsed
+    - alert: Kube 命名空间配额已完全使用
       annotations:
         description: 命名空间{{ $labels.namespace }}正在使用其{{ $labels.resource }}配额的{{ $value | humanizePercentage }}。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubequotafullyused 
@@ -89,7 +89,7 @@ spec:
       for: 15m
       labels:
         severity: info
-    - alert: KubeQuotaExceeded
+    - alert: Kube 命名空间配额已超出限制
       annotations:
         description: 命名空间{{ $labels.namespace }}正在使用其{{ $labels.resource }}配额的{{ $value | humanizePercentage }}。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubequotaexceeded 
@@ -102,7 +102,7 @@ spec:
       for: 15m
       labels:
         severity: warning
-    - alert: CPUThrottlingHigh
+    - alert: Kube Pod CPU 节流比例较高
       annotations:
         description: 命名空间{{ $labels.namespace }}中的容器{{ $labels.container }}在Pod{{ $labels.pod }}中CPU节流比例为{{ $value | humanizePercentage }}。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/cputhrottlinghigh 

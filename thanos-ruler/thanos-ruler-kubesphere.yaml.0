@@ -1,0 +1,29 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"monitoring.coreos.com/v1","kind":"ServiceMonitor","metadata":{"annotations":{},"labels":{"app.kubernetes.io/component":"thanos-ruler","app.kubernetes.io/instance":"kubesphere","app.kubernetes.io/name":"thanos-ruler","app.kubernetes.io/part-of":"kube-prometheus","app.kubernetes.io/vendor":"kubesphere","app.kubernetes.io/version":"0.25.2"},"name":"thanos-ruler-kubesphere","namespace":"kubesphere-monitoring-system"},"spec":{"endpoints":[{"interval":"1m","port":"web"}],"selector":{"matchLabels":{"app.kubernetes.io/component":"thanos-ruler","app.kubernetes.io/instance":"kubesphere","app.kubernetes.io/name":"thanos-ruler","app.kubernetes.io/part-of":"kube-prometheus"}}}}
+  creationTimestamp: "2024-07-18T08:22:40Z"
+  generation: 1
+  labels:
+    app.kubernetes.io/component: thanos-ruler
+    app.kubernetes.io/instance: kubesphere
+    app.kubernetes.io/name: thanos-ruler
+    app.kubernetes.io/part-of: kube-prometheus
+    app.kubernetes.io/vendor: kubesphere
+    app.kubernetes.io/version: 0.25.2
+  name: thanos-ruler-kubesphere
+  namespace: kubesphere-monitoring-system
+  resourceVersion: "378630"
+  uid: cbab951f-6c62-479f-bf8f-0a0bf9774990
+spec:
+  endpoints:
+  - interval: 1m
+    port: web
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: thanos-ruler
+      app.kubernetes.io/instance: kubesphere
+      app.kubernetes.io/name: thanos-ruler
+      app.kubernetes.io/part-of: kube-prometheus

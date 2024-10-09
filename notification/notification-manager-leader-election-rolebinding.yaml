@@ -1,0 +1,18 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  annotations:
+    meta.helm.sh/release-name: notification-manager
+    meta.helm.sh/release-namespace: kubesphere-monitoring-system
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: notification-manager-leader-election-rolebinding
+  namespace: kubesphere-monitoring-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: notification-manager-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: notification-manager-sa
+  namespace: kubesphere-monitoring-system

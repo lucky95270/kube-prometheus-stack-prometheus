@@ -13,11 +13,11 @@ spec:
   groups:
   - name: kubernetes-apps
     rules:
-    - alert: KubePodImagePullBackOff
+    - alert: KubePod 镜像拉取失败
       annotations:
-        description: '命名空间: {{ $labels.namespace }} 中的 Pod: {{ $labels.pod }} 容器: ({{ $labels.container }}) 在节点 {{ $labels.node }} Pod_IP: {{ $labels.pod_ip }} 处于等待状态（原因："ImagePullBackOff"），使用的镜像为: {{ $labels.image }}。'
+        description: '命名空间: {{ $labels.namespace }} 中的 Pod: {{ $labels.pod }} 容器: ({{ $labels.container }}) 在节点 {{ $labels.node }} Pod_IP: {{ $labels.pod_ip }} 处于等待状态（原因："ImagePullBackOff"），使用的镜像为: {{ $labels.image }}'
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodimagepullbackoff
-        summary: Pod 在拉取镜像时遇到问题。
+        summary: Pod 在拉取镜像时遇到问题;
       expr: |-
         sum by (namespace, pod, container, image, node, pod_ip) (
           kube_pod_container_status_waiting_reason{reason="ImagePullBackOff", job="kube-state-metrics", namespace=~".*"}
@@ -27,11 +27,11 @@ spec:
       for: 15m
       labels:
         severity: warning
-    - alert: KubePodCrashLooping
+    - alert: KubePod 容器报错
       annotations:
         description: '命名空间: {{ $labels.namespace }} 中的 Pod: {{ $labels.pod }} 容器: ({{ $labels.container }}) 在节点 {{ $labels.node }} Pod_IP: {{ $labels.pod_ip }} 处于等待状态（原因："CrashLoopBackOff"）需要查看容器日志。'
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodcrashlooping
-        summary: Pod 正在崩溃循环。
+        summary: Pod 正在崩溃循环;
       expr: |-
         sum by (namespace, pod, container, node, pod_ip) (
           kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics", namespace=~".*"}
@@ -40,11 +40,11 @@ spec:
       for: 15m
       labels:
         severity: warning
-    - alert: KubePodNotReady
+    - alert: KubePod 没有Running就绪
       annotations:
         description: '命名空间: {{ $labels.namespace }} 中的 Pod: {{ $labels.pod }} 容器: ({{ $labels.container }}) 在节点 {{ $labels.node }} Pod_IP: {{ $labels.pod_ip }} 处于非就绪状态'
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodnotready
-        summary: Pod 已经超过15分钟处于非就绪状态。
+        summary: Pod 已经超过15分钟处于非就绪状态;
       expr: |-
         sum by (namespace, pod, node, pod_ip) (
           max by(namespace, pod) (
@@ -55,12 +55,11 @@ spec:
       for: 15m
       labels:
         severity: warning
-    - alert: KubeDeploymentGenerationMismatch
+    - alert: KubeDeployment 错误回滚失败
       annotations:
-        description: 部署 {{ $labels.namespace }}/{{ $labels.deployment
-          }} 的代数不匹配，这表明部署失败但未回滚。
+        description: 部署 {{ $labels.namespace }}/{{ $labels.deployment }} 的代数不匹配，这表明部署失败但未回滚。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentgenerationmismatch 
-        summary: 可能由于回滚导致部署代数不匹配
+        summary: 可能由于回滚导致部署代数不匹配;
       expr: |-
         kube_deployment_status_observed_generation{job="kube-state-metrics", namespace=~".*"}
           !=
@@ -68,11 +67,11 @@ spec:
       for: 15m
       labels:
         severity: warning
-    - alert: KubeDeploymentReplicasMismatch
+    - alert: KubeDeployment 副本数量不匹配
       annotations:
         description: 部署 {{ $labels.namespace }}/{{ $labels.deployment }} 已经超过15分钟没有达到预期的副本数量。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentreplicasmismatch 
-        summary: 部署未达到预期的副本数量。
+        summary: 部署未达到预期的副本数量;
       expr: |-
         (
           kube_deployment_spec_replicas{job="kube-state-metrics", namespace=~".*"}
@@ -86,12 +85,11 @@ spec:
       for: 15m
       labels:
         severity: warning
-    - alert: KubeStatefulSetReplicasMismatch
+    - alert: KubeStatefulSet 副本数量不匹配
       annotations:
-        description: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }}
-          已经超过15分钟没有达到预期的副本数量。
+        description: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }}已经超过15分钟没有达到预期的副本数量。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetreplicasmismatch 
-        summary: 部署未达到预期的副本数量。
+        summary: 部署未达到预期的副本数量;
       expr: |-
         (
           kube_statefulset_status_replicas_ready{job="kube-state-metrics", namespace=~".*"}
@@ -105,12 +103,11 @@ spec:
       for: 15m
       labels:
         severity: warning
-    - alert: KubeStatefulSetGenerationMismatch
+    - alert: KubeStatefulSet 错误回滚失败
       annotations:
-        description: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset
-          }} 的代数不匹配，这表明StatefulSet失败但未回滚。
+        description: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} 的代数不匹配，这表明StatefulSet失败但未回滚。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetgenerationmismatch 
-        summary: 可能由于回滚导致StatefulSet代数不匹配
+        summary: 可能由于回滚导致StatefulSet代数不匹配;
       expr: |-
         kube_statefulset_status_observed_generation{job="kube-state-metrics", namespace=~".*"}
           !=
@@ -118,12 +115,11 @@ spec:
       for: 15m
       labels:
         severity: warning
-    - alert: KubeStatefulSetUpdateNotRolledOut
+    - alert: KubeStatefulSet 更新失败
       annotations:
-        description: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }}
-          更新未成功推出。
+        description: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }}更新未成功推出。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubestatefulsetupdatenotrolledout 
-        summary: StatefulSet 更新未成功推出。
+        summary: StatefulSet 更新未成功推出;
       expr: |-
         (
           max without (revision) (
@@ -145,11 +141,11 @@ spec:
       for: 15m
       labels:
         severity: warning
-    - alert: KubeDaemonSetRolloutStuck
+    - alert: KubeDaemonSet 重载失败
       annotations:
         description: DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} 至少15分钟内未完成或没有进展。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetrolloutstuck 
-        summary: DaemonSet 推出卡住。
+        summary: DaemonSet 推出卡住;
       expr: |-
         (
           (
@@ -177,7 +173,7 @@ spec:
       for: 15m
       labels:
         severity: warning
-    - alert: KubeContainerWaiting
+    - alert: Kube 容器创建失败
       annotations:
         description: |
           该容器已在等待状态超过 1 小时，原因可能包括:
@@ -190,7 +186,7 @@ spec:
     
           请检查容器的状态和事件日志，以确定具体原因。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecontainerwaiting
-        summary: Pod 容器在等待状态超过 1 小时，可能存在问题。
+        summary: Pod 容器在等待状态超过 1 小时，可能存在问题;
       expr: |
         sum by (namespace, pod, container, node, pod_ip) (
           kube_pod_container_status_waiting_reason{job="kube-state-metrics", namespace=~".*"}
@@ -199,12 +195,11 @@ spec:
       for: 1h
       labels:
         severity: warning
-    - alert: KubeDaemonSetNotScheduled
+    - alert: KubeDaemonSet 调度失败
       annotations:
-        description: 有 {{ $value }} 个 DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset
-          }} 的 Pods 未被调度。
+        description: 有 {{ $value }} 个 DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} 的 Pods 未被调度。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedaemonsetnotscheduled 
-        summary: DaemonSet Pods 未被调度。
+        summary: DaemonSet Pods 未被调度;
       expr: |-
         kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics", namespace=~".*"}
           -

@@ -13,7 +13,7 @@ spec:
   groups:
   - name: node-network
     rules:
-    - alert: NodeNetworkInterfaceFlapping
+    - alert: 节点网络接口频繁状态变化
       annotations:
         description: 网络接口 "{{ $labels.device }}" 在 node-exporter {{ $labels.namespace }}/{{ $labels.pod }} 上频繁改变其上线状态
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/general/nodenetworkinterfaceflapping 

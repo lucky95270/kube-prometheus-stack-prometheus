@@ -13,7 +13,7 @@ spec:
   groups:
   - name: kubernetes-system-controller-manager
     rules:
-    - alert: KubeControllerManagerDown
+    - alert: KubeControllerManager 关闭
       annotations:
         description: KubeControllerManager 已从 Prometheus 目标发现中消失。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecontrollermanagerdown 

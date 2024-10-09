@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    meta.helm.sh/release-name: notification-manager
+    meta.helm.sh/release-namespace: kubesphere-monitoring-system
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: notification-manager-sa
+  namespace: kubesphere-monitoring-system

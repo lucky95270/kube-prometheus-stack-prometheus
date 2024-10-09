@@ -13,7 +13,7 @@ spec:
   groups:
   - name: kubernetes-system-scheduler
     rules:
-    - alert: KubeSchedulerDown
+    - alert: KubeScheduler 关闭
       annotations:
         description: KubeScheduler 已从 Prometheus 目标发现中消失。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeschedulerdown 

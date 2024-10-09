@@ -13,7 +13,7 @@ spec:
   groups:
   - name: config-reloaders
     rules:
-    - alert: ConfigReloaderSidecarErrors
+    - alert: 配置重新加载错误
       annotations:
         description: |-
           {{$labels.namespace}} 命名空间中的 {{$labels.pod}} 配置重新加载器 sidecar 尝试同步配置时遇到错误，因此，运行在 {{$labels.pod}} 上的服务配置可能已经过时且无法再更新

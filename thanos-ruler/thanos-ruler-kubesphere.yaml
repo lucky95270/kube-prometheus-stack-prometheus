@@ -1,0 +1,174 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  annotations:
+  labels:
+    app.kubernetes.io/component: thanos-ruler
+    app.kubernetes.io/instance: kubesphere
+    app.kubernetes.io/name: thanos-ruler
+    app.kubernetes.io/part-of: kube-prometheus
+    app.kubernetes.io/version: 0.25.2
+  name: thanos-ruler-kubesphere
+  namespace: kubesphere-monitoring-system
+ # ownerReferences:
+ # - apiVersion: monitoring.coreos.com/v1
+ #   blockOwnerDeletion: true
+ #   controller: true
+ #   kind: ThanosRuler
+ #   name: kubesphere
+ #   uid: 8db4bd8d-35b5-4704-af17-5f5d623e5c9e
+ # resourceVersion: "86007804"
+ # uid: 0fd8b180-646f-4d4f-9ac3-52b1088b7c4c
+spec:
+  podManagementPolicy: Parallel
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: thanos-ruler
+      app.kubernetes.io/instance: kubesphere
+      app.kubernetes.io/managed-by: prometheus-operator
+      app.kubernetes.io/name: thanos-ruler
+      app.kubernetes.io/part-of: kube-prometheus
+      app.kubernetes.io/version: 0.25.2
+      thanos-ruler: kubesphere
+  serviceName: ""
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: thanos-ruler
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/component: thanos-ruler
+        app.kubernetes.io/instance: kubesphere
+        app.kubernetes.io/managed-by: prometheus-operator
+        app.kubernetes.io/name: thanos-ruler
+        app.kubernetes.io/part-of: kube-prometheus
+        app.kubernetes.io/version: 0.25.2
+        thanos-ruler: kubesphere
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/component: thanos-ruler
+                  app.kubernetes.io/instance: kubesphere
+                  app.kubernetes.io/name: thanos-ruler
+                  app.kubernetes.io/part-of: kube-prometheus
+              namespaces:
+              - kubesphere-monitoring-system
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+      - args:
+        - rule
+        - --data-dir=/thanos/data
+        - --eval-interval=15s
+        - --tsdb.retention=24h
+        - --label=thanos_ruler_replica="$(POD_NAME)"
+        - --alert.label-drop=thanos_ruler_replica
+        - --query=http://kube-prometheus-stack-prometheus.monitoring.svc:9090
+        - --rule-file=/etc/thanos/rules/*/*.yaml
+        - --alertmanagers.url=dnssrv+http://alertmanager-operated.kubesphere-monitoring-system.svc:9093
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        image: registry.cn-beijing.aliyuncs.com/kubesphereio/thanos:v0.25.2
+        imagePullPolicy: IfNotPresent
+        name: thanos-ruler
+        ports:
+        - containerPort: 10901
+          name: grpc
+          protocol: TCP
+        - containerPort: 10902
+          name: web
+          protocol: TCP
+        resources:
+          limits:
+            cpu: "2"
+            memory: 4Gi
+          requests:
+            cpu: 500m
+            memory: 500Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - mountPath: /thanos/data
+          name: thanos-ruler-kubesphere-data
+        - mountPath: /etc/thanos/rules/thanos-ruler-kubesphere-rulefiles-0
+          name: thanos-ruler-kubesphere-rulefiles-0
+      - args:
+        - --listen-address=:8080
+        - --reload-url=http://127.0.0.1:10902/-/reload
+        - --watched-dir=/etc/thanos/rules/thanos-ruler-kubesphere-rulefiles-0
+        command:
+        - /bin/prometheus-config-reloader
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: SHARD
+          value: "-1"
+        image: quay.io/prometheus-operator/prometheus-config-reloader:v0.56.0
+        imagePullPolicy: IfNotPresent
+        name: config-reloader
+        ports:
+        - containerPort: 8080
+          name: reloader-web
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 200m
+            memory: 50Mi
+          requests:
+            cpu: 200m
+            memory: 50Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - mountPath: /etc/thanos/rules/thanos-ruler-kubesphere-rulefiles-0
+          name: thanos-ruler-kubesphere-rulefiles-0
+      dnsPolicy: ClusterFirst
+      nodeSelector:
+        kubernetes.io/os: linux
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 120
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: thanos-ruler-kubesphere-rulefiles-0
+        name: thanos-ruler-kubesphere-rulefiles-0
+      - emptyDir: {}
+        name: thanos-ruler-kubesphere-data
+  updateStrategy:
+    type: RollingUpdate
+status:
+  collisionCount: 0
+  currentReplicas: 2
+  currentRevision: thanos-ruler-kubesphere-8556d4676b
+  observedGeneration: 1800
+  readyReplicas: 2
+  replicas: 2
+  updateRevision: thanos-ruler-kubesphere-8556d4676b
+  updatedReplicas: 2

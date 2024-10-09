@@ -13,7 +13,7 @@ spec:
   groups:
   - name: kube-apiserver-slos
     rules:
-    - alert: KubeAPIErrorBudgetBurn
+    - alert: KubeAPI 错误执行预算过多
       annotations:
         description: API服务器消耗的错误预算过多。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeapierrorbudgetburn 
@@ -27,7 +27,7 @@ spec:
         long: 1h
         severity: critical
         short: 5m
-    - alert: KubeAPIErrorBudgetBurn
+    - alert: KubeAPI 错误执行预算过多
       annotations:
         description: API服务器消耗的错误预算过多。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeapierrorbudgetburn 
@@ -41,7 +41,7 @@ spec:
         long: 6h
         severity: critical
         short: 30m
-    - alert: KubeAPIErrorBudgetBurn
+    - alert: KubeAPI 错误执行预算过多
       annotations:
         description: API服务器消耗的错误预算过多。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeapierrorbudgetburn 
@@ -55,7 +55,7 @@ spec:
         long: 1d
         severity: warning
         short: 2h
-    - alert: KubeAPIErrorBudgetBurn
+    - alert: KubeAPI 错误执行预算过多
       annotations:
         description: API服务器消耗的错误预算过多。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeapierrorbudgetburn 

@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: notification-manager
+    notification-manager: notification-manager
+  name: notification-manager-deployment
+  namespace: kubesphere-monitoring-system
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: notification-manager
+      notification-manager: notification-manager
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: notification-manager
+        notification-manager: notification-manager
+    spec:
+      affinity: {}
+      containers:
+      - env:
+        - name: NAMESPACE
+          value: kubesphere-monitoring-federated
+        image: registry.cn-beijing.aliyuncs.com/kubesphereio/notification-manager:v1.4.0
+        imagePullPolicy: IfNotPresent
+        name: notification-manager
+        ports:
+        - containerPort: 19093
+          name: webhook
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 5m
+            memory: 20Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/localtime
+          name: host-time
+          readOnly: true
+        - mountPath: /etc/notification-manager/
+          name: notification-manager-template
+      - image: registry.cn-beijing.aliyuncs.com/kubesphereio/notification-tenant-sidecar:v3.2.0
+        imagePullPolicy: IfNotPresent
+        name: tenant
+        ports:
+        - containerPort: 19094
+          name: tenant
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/localtime
+          name: host-time
+          readOnly: true
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: notification-manager-sa
+      serviceAccountName: notification-manager-sa
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - hostPath:
+          path: /etc/localtime
+          type: ""
+        name: host-time
+      - configMap:
+          defaultMode: 420
+          name: notification-manager-template
+        name: notification-manager-template

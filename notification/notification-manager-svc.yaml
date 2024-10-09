@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: notification-manager
+    notification-manager: notification-manager
+  name: notification-manager-svc
+  namespace: kubesphere-monitoring-system
+spec:
+  ports:
+  - name: webhook
+    port: 19093
+    protocol: TCP
+    targetPort: webhook
+  selector:
+    app: notification-manager
+    notification-manager: notification-manager
+  sessionAffinity: None
+  type: ClusterIP

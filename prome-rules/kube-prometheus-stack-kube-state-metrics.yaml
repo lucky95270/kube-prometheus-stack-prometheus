@@ -13,7 +13,7 @@ spec:
   groups:
   - name: kube-state-metrics
     rules:
-    - alert: KubeStateMetricsListErrors
+    - alert: KubeStateMetrics 指标列表错误
       annotations:
         description: kube-state-metrics 在列表操作中遇到错误的比例较高，这可能导致它无法正确或根本无法暴露 Kubernetes 对象的指标。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kube-state-metrics/kubestatemetricslisterrors 
@@ -26,7 +26,7 @@ spec:
       for: 15m
       labels:
         severity: critical
-    - alert: KubeStateMetricsWatchErrors
+    - alert: KubeStateMetrics 监视指标错误
       annotations:
         description: kube-state-metrics 在观察操作中遇到错误的比例较高，这可能导致它无法正确或根本无法暴露 Kubernetes 对象的指标。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kube-state-metrics/kubestatemetricswatcherrors 
@@ -39,7 +39,7 @@ spec:
       for: 15m
       labels:
         severity: critical
-    - alert: KubeStateMetricsShardingMismatch
+    - alert: KubeStateMetrics 分片不匹配
       annotations:
         description: kube-state-metrics 运行的 Pods 配置了不同的 --total-shards 参数，一些 Kubernetes 对象可能被多次暴露或根本没有暴露。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kube-state-metrics/kubestatemetricsshardingmismatch 
@@ -49,7 +49,7 @@ spec:
       for: 15m
       labels:
         severity: critical
-    - alert: KubeStateMetricsShardsMissing
+    - alert: KubeStateMetrics 分片丢失
       annotations:
         description: kube-state-metrics 分片缺失，一些 Kubernetes 对象没有被暴露。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kube-state-metrics/kubestatemetricsshardsmissing 

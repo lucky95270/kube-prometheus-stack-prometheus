@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    meta.helm.sh/release-name: notification-manager
+    meta.helm.sh/release-namespace: kubesphere-monitoring-system
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    control-plane: controller-manager
+  name: notification-manager-controller-metrics
+  namespace: kubesphere-monitoring-system
+  resourceVersion: "378542"
+  uid: c1ab150b-2a28-465a-8011-9e5fd6e38e16
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: https
+  selector:
+    control-plane: controller-manager
+  sessionAffinity: None
+  type: ClusterIP
