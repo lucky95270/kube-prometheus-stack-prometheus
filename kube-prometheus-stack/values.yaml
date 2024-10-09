@@ -103,16 +103,13 @@ alertmanager:
     receivers:
       - name: critical-alerts  # 严重告警接收器
         webhook_configs:
-          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxx  # Fe
-ishu Webhook 地址，用于接收严重告警通知
+          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxx  # Feishu Webhook 地址，用于接收严重告警通知
       - name: warning-alerts  # 警告告警接收器
         webhook_configs:
-          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxxx  # Fei
-shu Webhook 地址，用于接收警告告警通知
+          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxxx  # Feishu Webhook 地址，用于接收警告告警通知
       - name: info-alerts  # 信息告警接收器
         webhook_configs:
-          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxx  # Feishu
- Webhook 地址，用于接收信息告警通知
+          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxx  # Feishu Webhook 地址，用于接收信息告警通知
   
     templates:
       - /etc/alertmanager/template/*.tmpl  # 告警模板文件，用于自定义告警消息的格式
@@ -144,13 +141,13 @@ shu Webhook 地址，用于接收警告告警通知
     clusterIP: ""
     port: 9093
     targetPort: 9093
-    nodePort: 30903
+    nodePort: 32903
     additionalPorts: []
     externalIPs: []
     loadBalancerIP: ""
     loadBalancerSourceRanges: []
     externalTrafficPolicy: Cluster
-    type: ClusterIP
+    type: NodePort
   servicePerReplica:
     enabled: false
     annotations: {}
@@ -635,11 +632,11 @@ prometheus:
     port: 9090
     targetPort: 9090
     externalIPs: []
-    nodePort: 30090
+    nodePort: 32090
     loadBalancerIP: ""
     loadBalancerSourceRanges: []
     externalTrafficPolicy: Cluster
-    type: ClusterIP
+    type: NodePort
     additionalPorts: []
     publishNotReadyAddresses: false
     sessionAffinity: ""
