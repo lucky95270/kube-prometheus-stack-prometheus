@@ -131,7 +131,7 @@ alertmanager:
       {{ define "email.to.html" }}
       {{ range .Alerts }}
       <p>==========<strong>告警通知 🚨</strong>==========</p>
-      <strong>⏰ 触发时间:</strong> {{ .StartsAt.Time.In location.TimeZone(8) * time.Hour).Format "2006-01-02 15:04:05" }}<br>
+      <strong>⏰ 触发时间:</strong> {{ (.StartsAt.Add 28800e9).Format "2006-01-02 15:04:05" }}<br>
       <strong>🔧 告警程序:</strong> prometheus_alert<br>
       <strong>⚠️ 告警级别:</strong> {{ .Labels.severity }}<br>
       <strong>📊 告警类型:</strong> {{ .Labels.alertname }}<br>
@@ -148,7 +148,7 @@ alertmanager:
       
       {{ if eq .Status "resolved" }}
       <p>==========<strong>告警恢复通知 ✅</strong>==========</p>
-      <strong>🕒 恢复时间:</strong> {{ if .EndsAt }}{{ .EndsAt.Time.In location.TimeZone(8) * time.Hour).Format "2006-01-02 15:04:05" }}{{ else }}N/A{{ end }}<br>
+      <strong>🕒 恢复时间:</strong> {{ if .EndsAt }}{{ (.EndsAt.Add 28800e9).Format "2006-01-02 15:04:05" }}{{ else }}N/A{{ end }}<br>
       <strong>🔧 告警程序:</strong> prometheus_alert<br>
       <strong>⚠️ 告警级别:</strong> {{ .Labels.severity }}<br>
       <strong>📊 告警类型:</strong> {{ .Labels.alertname }}<br>
