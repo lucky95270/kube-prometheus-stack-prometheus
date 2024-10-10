@@ -59,67 +59,111 @@ alertmanager:
     maxUnavailable: ""
   config:
     global:
-      resolve_timeout: 5m  # 告警恢复超时时间，超过这个时间则告警被认为已恢复
-      smtp_from: xiahediyijun@163.com  # 发件人邮箱地址
-      smtp_smarthost: smtp.163.com:465  # SMTP 服务器地址和端口号（465 常用于 SSL 加密连接）
-      smtp_auth_username: xiahediyijun@163.com  # SMTP 认证的用户名
-      smtp_auth_password: xxxxxxxxxxxxxx  # SMTP 认证的密码
-      smtp_require_tls: false  # 设置为 false 关闭 TLS
+      resolve_timeout: 5m
+      smtp_from: xiahediyijun@163.com
+      smtp_smarthost: smtp.163.com:465
+      smtp_auth_username: xiahediyijun@163.com
+      smtp_auth_password: NCYLASWFBVCGJVKB
+      smtp_require_tls: false
     route:
-      group_by: ['alertname', 'namespace', 'instance', 'pod']  # 按告警名称、命名空间、实例和 Pod 对告警进行分组
-      group_wait: 30s  # 在首次收到告警后等待 30 秒，以便对告警进行分组
-      group_interval: 5m  # 同一分组的告警间隔 5 分钟重新发送
-      repeat_interval: 4h  # 相同告警每 4 小时重复发送
-      receiver: critical-alerts  # 默认接收器为 critical-alerts
-      routes:  # 子路由规则，根据不同严重级别发送到不同接收器
+      group_by: ['alertname', 'namespace', 'instance', 'pod']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      receiver: critical-alerts
+      routes:
       - match:
-          severity: critical  # 匹配严重级别为 critical 的告警
-        receiver: critical-alerts  # 将 critical 告警发送到 critical-alerts 接收器
-        group_interval: 1m  # 对 critical 告警进行 1 分钟的分组间隔
-        repeat_interval: 1h  # critical 告警每 1 小时重复发送
+          severity: critical
+        receiver: critical-alerts
+        group_interval: 1m
+        repeat_interval: 1h
       - match:
-          severity: warning  # 匹配严重级别为 warning 的告警
-        receiver: warning-alerts  # 将 warning 告警发送到 warning-alerts 接收器
-        repeat_interval: 4h  # warning 告警每 4 小时重复发送
+          severity: warning
+        receiver: warning-alerts
+        repeat_interval: 4h
       - match:
-          severity: info  # 匹配严重级别为 info 的告警
-        receiver: info-alerts  # 将 info 告警发送到 info-alerts 接收器
-        repeat_interval: 12h  # info 告警每 12 小时重复发送
-    inhibit_rules:  # 抑制规则，防止低级别告警被高优先级告警重复发送
+          severity: info
+        receiver: info-alerts
+        repeat_interval: 12h
+    inhibit_rules:
       - source_match:
-          severity: 'critical'  # 当存在 critical 告警时
+          severity: 'critical'
         target_match:
-          severity: 'warning'  # 抑制 warning 告警
-        equal: ['alertname', 'namespace', 'instance']  # 仅当 alertname、namespace 和 instance 相同时抑制
+          severity: 'warning'
+        equal: ['alertname', 'namespace', 'instance']
       - source_match:
-          severity: 'warning'  # 当存在 warning 告警时
+          severity: 'warning'
         target_match:
-          severity: 'info'  # 抑制 info 告警
-        equal: ['alertname', 'namespace', 'instance']  # 仅当 alertname、namespace 和 instance 相同时抑制
-    receivers:  # 告警接收器配置
+          severity: 'info'
+        equal: ['alertname', 'namespace', 'instance']
+    receivers:
       - name: critical-alerts
         webhook_configs:
-          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxx  # Webhook URL 用于发送到 Feishu
+          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxx
         email_configs:
-          - to: 2099637909@qq.com  # 接收告警的邮箱地址
+          - to: '{{ template "email.to" }}'  # 收件人邮箱地址2099637909@qq.com，替换为您的实际邮箱或者(从告警模版的变量中获取) '{{ template "email.to" }}'
+            headers: { Subject: "[严重告警-测试环境] " }  # 告警主题或这(从告警模版的变量中获取) {{ define "email.title" }}测试环境告警{{ end }}
+            html: '{{ template "email.to.html" .}}'  # 邮箱内容(从告警模版的变量中获取)
             send_resolved: true  # 发送告警恢复通知
       - name: warning-alerts
         webhook_configs:
-          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxxx  # Webhook URL 用于发送到 Feishu
+          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxxx
         email_configs:
-          - to: 2099637909@qq.com  # 接收告警的邮箱地址
+          - to: '{{ template "email.to" }}'  # 收件人邮箱地址2099637909@qq.com，替换为您的实际邮箱或者(从告警模版的变量中获取) '{{ template "email.to" }}'
+            headers: { Subject: "[警告告警-测试环境] " }  # 告警主题或这(从告警模版的变量中获取) {{ define "email.title" }}测试环境告警{{ end }}
+            html: '{{ template "email.to.html" .}}'  # 邮箱内容(从告警模版的变量中获取)
             send_resolved: true  # 发送告警恢复通知
       - name: info-alerts
         webhook_configs:
-          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxx  # Webhook URL 用于发送到 Feishu
+          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxx
         email_configs:
-          - to: 2099637909@qq.com  # 接收告警的邮箱地址
+          - to: '{{ template "email.to" }}'  # 收件人邮箱地址2099637909@qq.com，替换为您的实际邮箱或者(从告警模版的变量中获取) '{{ template "email.to" }}'
+            headers: { Subject: "[正常告警-测试环境] " }  # 告警主题或这(从告警模版的变量中获取) {{ define "email.title" }}测试环境告警{{ end }}
+            html: '{{ template "email.to.html" .}}'  # 邮箱内容(从告警模版的变量中获取)
             send_resolved: true  # 发送告警恢复通知
     templates:
-      - /etc/alertmanager/template/*.tmpl  # 告警通知模板文件的路径
+      - /etc/alertmanager/template/*.tmpl
 
   tplConfig: false
-  templateFiles: {}
+  templateFiles:
+    email.tmpl: |-
+      {{ define "email.to" }}2099637909@qq.com{{ end }}
+      {{ define "email.to.html" }}
+      {{ range .Alerts }}
+      <p>==========<strong>告警通知 🚨</strong>==========</p>
+      <strong>⏰ 触发时间:</strong> {{ .StartsAt.Time.In location.TimeZone(8) * time.Hour).Format "2006-01-02 15:04:05" }}<br>
+      <strong>🔧 告警程序:</strong> prometheus_alert<br>
+      <strong>⚠️ 告警级别:</strong> {{ .Labels.severity }}<br>
+      <strong>📊 告警类型:</strong> {{ .Labels.alertname }}<br>
+      <strong>📝 告警信息:</strong> {{ .Annotations.summary }}<br>
+      <strong>📃 告警描述:</strong> {{ .Annotations.description }}<br>
+      <strong>🚦 当前状态:</strong> {{ .Status }}<br>
+      <strong>📁 实例项目:</strong> {{ .Labels.namespace}}<br>
+      <strong>🏷️ 实例名称:</strong> {{ .Labels.pod }}<br>
+      <strong>🔍 实例类型:</strong> {{ .Labels.instance_type }}<br>
+      <strong>💻 实例 IP:</strong> {{ .Labels.pod_ip }}<br>
+      <strong>🖥️ 节点名称:</strong> {{ .Labels.node }}<br>
+      <strong>🌐 节点 IP:</strong> {{ .Labels.node_ip }}<br>
+      <strong>Prometheus监控界面地址:</strong> <a href="{{ .GeneratorURL }}">点击跳转</a><br>
+      
+      {{ if eq .Status "resolved" }}
+      <p>==========<strong>告警恢复通知 ✅</strong>==========</p>
+      <strong>🕒 恢复时间:</strong> {{ if .EndsAt }}{{ .EndsAt.Time.In location.TimeZone(8) * time.Hour).Format "2006-01-02 15:04:05" }}{{ else }}N/A{{ end }}<br>
+      <strong>🔧 告警程序:</strong> prometheus_alert<br>
+      <strong>⚠️ 告警级别:</strong> {{ .Labels.severity }}<br>
+      <strong>📊 告警类型:</strong> {{ .Labels.alertname }}<br>
+      <strong>📝 告警信息:</strong> {{ .Annotations.summary }}<br>
+      <strong>📃 告警描述:</strong> {{ .Annotations.description }}<br>
+      <strong>🚦 当前状态:</strong> {{ .Status }}<br>
+      <strong>📁 实例项目:</strong> {{ .Labels.namespace}}<br>
+      <strong>🏷️ 实例名称:</strong> {{ .Labels.pod }}<br>
+      <strong>🔍 实例类型:</strong> {{ .Labels.instance_type }}<br>
+      <strong>💻 实例 IP:</strong> {{ .Labels.pod_ip }}<br>
+      <strong>🖥️ 节点名称:</strong> {{ .Labels.node }}<br>
+      <strong>🌐 节点 IP:</strong> {{ .Labels.node_ip }}<br>
+      {{ end }} <!-- 结束恢复告警的条件 -->
+      {{ end }} <!-- 结束告警循环 -->
+      {{ end }} <!-- 结束模板定义 -->
   ingress:
     enabled: true
     ingressClassName: nginx
@@ -220,7 +264,13 @@ alertmanager:
     listenLocal: false
     containers: []
     volumes: []
+     # - name: alertmanager-template
+     #   configMap:
+     #     name: alertmanager-template  # ConfigMap 名称要和上面保持一致
     volumeMounts: []
+     # - name: alertmanager-template
+     #   mountPath: /etc/alertmanager/template    # 你想要挂载到的路径
+     #   readOnly: true
     initContainers: []
     priorityClassName: ""
     additionalPeers: []
