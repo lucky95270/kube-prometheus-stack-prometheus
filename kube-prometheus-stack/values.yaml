@@ -59,60 +59,65 @@ alertmanager:
     maxUnavailable: ""
   config:
     global:
-      resolve_timeout: 5m  # 解决告警状态的超时时间设置为 5 分钟，适用于较快速恢复的告警场景
+      resolve_timeout: 5m  # 告警恢复超时时间，超过这个时间则告警被认为已恢复
       smtp_from: xiahediyijun@163.com  # 发件人邮箱地址
-      smtp_smarthost: smtp.163.com:465  # 邮件服务器地址和端口
-      smtp_auth_username: xiahediyijun@163.com  # 邮箱认证用户名
-      smtp_auth_password: xxxxxxxxxxxxxxxxxxxx  # 邮箱认证密码
-      smtp_require_tls: true  # 启用 TLS 安全传输，确保邮件的加密传输安全
-  
+      smtp_smarthost: smtp.163.com:465  # SMTP 服务器地址和端口号（465 常用于 SSL 加密连接）
+      smtp_auth_username: xiahediyijun@163.com  # SMTP 认证的用户名
+      smtp_auth_password: xxxxxxxxxxxxxx  # SMTP 认证的密码
+      smtp_require_tls: false  # 设置为 false 关闭 TLS
     route:
-      group_by: ['alertname', 'namespace', 'instance', 'pod']  # 根据告警名称、命名空间、实例和 pod 进行分组，防止分散过多的重复告警
-      group_wait: 30s  # 在发送第一个告警前等待 30 秒，允许在短时间内合并更多告警
-      group_interval: 5m  # 告警组的发送间隔为 5 分钟，减少过于频繁的告警推送
-      repeat_interval: 4h  # 默认情况下，告警会每 4 小时重复一次，如果告警未恢复
-      receiver: critical-alerts  # 默认告警接收器为 critical-alerts，处理严重告警
-      routes:
+      group_by: ['alertname', 'namespace', 'instance', 'pod']  # 按告警名称、命名空间、实例和 Pod 对告警进行分组
+      group_wait: 30s  # 在首次收到告警后等待 30 秒，以便对告警进行分组
+      group_interval: 5m  # 同一分组的告警间隔 5 分钟重新发送
+      repeat_interval: 4h  # 相同告警每 4 小时重复发送
+      receiver: critical-alerts  # 默认接收器为 critical-alerts
+      routes:  # 子路由规则，根据不同严重级别发送到不同接收器
       - match:
-          severity: critical  # 匹配严重级别 (critical) 的告警
-        receiver: critical-alerts  # 严重告警发送到 critical-alerts 接收器
-        group_interval: 1m  # 严重告警每 1 分钟可以发送一组
-        repeat_interval: 1h  # 严重告警每 1 小时重复提醒一次
+          severity: critical  # 匹配严重级别为 critical 的告警
+        receiver: critical-alerts  # 将 critical 告警发送到 critical-alerts 接收器
+        group_interval: 1m  # 对 critical 告警进行 1 分钟的分组间隔
+        repeat_interval: 1h  # critical 告警每 1 小时重复发送
       - match:
-          severity: warning  # 匹配警告级别 (warning) 的告警
-        receiver: warning-alerts  # 警告告警发送到 warning-alerts 接收器
-        repeat_interval: 4h  # 警告告警每 4 小时重复提醒一次
+          severity: warning  # 匹配严重级别为 warning 的告警
+        receiver: warning-alerts  # 将 warning 告警发送到 warning-alerts 接收器
+        repeat_interval: 4h  # warning 告警每 4 小时重复发送
       - match:
-          severity: info  # 匹配信息级别 (info) 的告警
-        receiver: info-alerts  # 信息告警发送到 info-alerts 接收器
-        repeat_interval: 12h  # 信息告警每 12 小时重复提醒一次
-  
-    inhibit_rules:
-      # 定义告警抑制规则，当较高优先级的告警存在时抑制较低优先级的告警
+          severity: info  # 匹配严重级别为 info 的告警
+        receiver: info-alerts  # 将 info 告警发送到 info-alerts 接收器
+        repeat_interval: 12h  # info 告警每 12 小时重复发送
+    inhibit_rules:  # 抑制规则，防止低级别告警被高优先级告警重复发送
       - source_match:
-          severity: 'critical'  # 来源是严重级别的告警
+          severity: 'critical'  # 当存在 critical 告警时
         target_match:
-          severity: 'warning'  # 目标是警告级别的告警
-        equal: ['alertname', 'namespace', 'instance']  # 如果告警名称、命名空间和实例相同，则抑制警告级别的告警
+          severity: 'warning'  # 抑制 warning 告警
+        equal: ['alertname', 'namespace', 'instance']  # 仅当 alertname、namespace 和 instance 相同时抑制
       - source_match:
-          severity: 'warning'  # 来源是警告级别的告警
+          severity: 'warning'  # 当存在 warning 告警时
         target_match:
-          severity: 'info'  # 目标是信息级别的告警
-        equal: ['alertname', 'namespace', 'instance']  # 如果告警名称、命名空间和实例相同，则抑制信息级别的告警
-
-    receivers:
-      - name: critical-alerts  # 严重告警接收器
+          severity: 'info'  # 抑制 info 告警
+        equal: ['alertname', 'namespace', 'instance']  # 仅当 alertname、namespace 和 instance 相同时抑制
+    receivers:  # 告警接收器配置
+      - name: critical-alerts
         webhook_configs:
-          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxx  # Feishu Webhook 地址，用于接收严重告警通知
-      - name: warning-alerts  # 警告告警接收器
+          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxx  # Webhook URL 用于发送到 Feishu
+        email_configs:
+          - to: 2099637909@qq.com  # 接收告警的邮箱地址
+            send_resolved: true  # 发送告警恢复通知
+      - name: warning-alerts
         webhook_configs:
-          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxxx  # Feishu Webhook 地址，用于接收警告告警通知
-      - name: info-alerts  # 信息告警接收器
+          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxxx  # Webhook URL 用于发送到 Feishu
+        email_configs:
+          - to: 2099637909@qq.com  # 接收告警的邮箱地址
+            send_resolved: true  # 发送告警恢复通知
+      - name: info-alerts
         webhook_configs:
-          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxx  # Feishu Webhook 地址，用于接收信息告警通知
-  
+          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxx  # Webhook URL 用于发送到 Feishu
+        email_configs:
+          - to: 2099637909@qq.com  # 接收告警的邮箱地址
+            send_resolved: true  # 发送告警恢复通知
     templates:
-      - /etc/alertmanager/template/*.tmpl  # 告警模板文件，用于自定义告警消息的格式
+      - /etc/alertmanager/template/*.tmpl  # 告警通知模板文件的路径
+
   tplConfig: false
   templateFiles: {}
   ingress:
