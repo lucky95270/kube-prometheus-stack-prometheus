@@ -122,7 +122,7 @@ alertmanager:
             html: '{{ template "email.to.html" .}}'  # 邮箱内容(从告警模版的变量中获取)
             send_resolved: true  # 发送告警恢复通知
     templates:
-      - /etc/alertmanager/template/*.tmpl
+      - '/etc/alertmanager/config/*.tmpl'
 
   tplConfig: false
   templateFiles:
