@@ -8,21 +8,29 @@
     {{ $urimsg = print $urimsg $key "%3D%22" $value "%22%2C" -}}
   {{ end -}}
 
-  {{- $controllerType := (printf "%ss" ($alert.labels.owner_kind | toLower)) -}}
-  {{ $controllerName := $alert.labels.owner_name -}}
+{{- $ownerKind := $alert.labels.owner_kind | toLower -}}  # 获取 owner_kind，并转换为小写
+{{- $controllerType := "" -}}
 
-  {{ $kubesphereURL := "" -}}
-  {{ if eq $controllerType "deployments" -}}
-    {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/deployments/%s/resource-status" $alert.labels.namespace $controllerName -}}
-  {{ else if eq $controllerType "statefulsets" -}}
-    {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/statefulsets/%s/resource-status" $alert.labels.namespace $controllerName -}}
-  {{ else if eq $controllerType "daemonsets" -}}
-    {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/daemonsets/%s/resource-status" $alert.labels.namespace $controllerName -}}
-  {{ else if eq $controllerType "jobs" -}}
-    {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/jobs/%s/records" $alert.labels.namespace $controllerName -}}
-  {{ else -}}
-    {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/%s/%s/resource-status" $alert.labels.namespace $controllerType $controllerName -}}
-  {{ end -}}
+{{- if eq $ownerKind "replicaset" -}}
+  {{- $controllerType = "deployment" -}}  # 将 ReplicaSet 视为 Deployment
+{{- else -}}
+  {{- $controllerType = printf "%ss" $ownerKind -}}  # 其他情况正常处理
+{{- end -}}
+
+{{ $controllerName := $alert.labels.owner_name -}}
+
+{{ $kubesphereURL := "" -}}
+{{ if eq $controllerType "deployments" -}}
+  {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/deployments/%s/resource-status" $alert.labels.namespace $controllerName -}}
+{{ else if eq $controllerType "statefulsets" -}}
+  {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/statefulsets/%s/resource-status" $alert.labels.namespace $controllerName -}}
+{{ else if eq $controllerType "daemonsets" -}}
+  {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/daemonsets/%s/resource-status" $alert.labels.namespace $controllerName -}}
+{{ else if eq $controllerType "jobs" -}}
+  {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/jobs/%s/records" $alert.labels.namespace $controllerName -}}
+{{ else -}}
+  {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/%s/%s/resource-status" $alert.labels.namespace $controllerType $controllerName -}}
+{{ end -}}
 
   {{ if eq $alert.status "resolved" -}}
 Kubernetes 集群恢复通知
