@@ -1,6 +1,6 @@
-{{ $alertmanagerURL := "http://192.168.233.32:32093&#34;  -}}
+{{ $alertmanagerURL := "http://192.168.233.32:32093" -}}
 {{ $alerts := .alerts -}}
-{{ $grafanaURL := "http://192.168.233.32:32030/d/200ac8fdbb74b39aff88118e4d1c2c/kubernetes-compute-resources-node-pods?orgId=1&refresh=10s&#34;  -}}
+{{ $grafanaURL := "http://192.168.233.32:32030/d/200ac8fdbb74b39aff88118e4d1c2c/kubernetes-compute-resources-node-pods?orgId=1&refresh=10s" -}}
 {{ range $alert := $alerts -}}
   {{ $groupKey := printf "%s|%s" $alert.labels.alertname $alert.status -}}
   {{ $urimsg := "" -}}
@@ -8,20 +8,20 @@
     {{ $urimsg = print $urimsg $key "%3D%22" $value "%22%2C" -}}
   {{ end -}}
 
-  {{- $controllerType := $alert.labels.owner_kind | toLower -}}
+  {{- $controllerType := (printf "%ss" ($alert.labels.owner_kind | toLower)) -}}
   {{ $controllerName := $alert.labels.owner_name -}}
 
   {{ $kubesphereURL := "" -}}
   {{ if eq $controllerType "deployments" -}}
-    {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/deployments/%s/resource-status&#34;  $alert.labels.namespace $controllerName -}}
+    {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/deployments/%s/resource-status" $alert.labels.namespace $controllerName -}}
   {{ else if eq $controllerType "statefulsets" -}}
-    {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/statefulsets/%s/resource-status&#34;  $alert.labels.namespace $controllerName -}}
+    {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/statefulsets/%s/resource-status" $alert.labels.namespace $controllerName -}}
   {{ else if eq $controllerType "daemonsets" -}}
-    {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/daemonsets/%s/resource-status&#34;  $alert.labels.namespace $controllerName -}}
+    {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/daemonsets/%s/resource-status" $alert.labels.namespace $controllerName -}}
   {{ else if eq $controllerType "jobs" -}}
-    {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/jobs/%s/records&#34;  $alert.labels.namespace $controllerName -}}
+    {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/jobs/%s/records" $alert.labels.namespace $controllerName -}}
   {{ else -}}
-    {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/%s/%s/resource-status&#34;  $alert.labels.namespace $controllerType $controllerName -}}
+    {{ $kubesphereURL = printf "http://192.168.233.26:30880/clusters/default/projects/%s/%s/%s/resource-status" $alert.labels.namespace $controllerType $controllerName -}}
   {{ end -}}
 
   {{ if eq $alert.status "resolved" -}}
