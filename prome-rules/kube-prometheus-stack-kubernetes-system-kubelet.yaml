@@ -22,7 +22,7 @@ spec:
         == 0
       for: 15m
       labels:
-        severity: warning
+        severity: critical
     - alert: Kube 节点不可达
       annotations:
         description: '{{ $labels.node }} 不可达，部分工作负载可能会被重新调度。'
@@ -33,7 +33,7 @@ spec:
         == 1
       for: 15m
       labels:
-        severity: warning
+        severity: critical
     - alert: Kubelet Pod 最大容量
       annotations:
         description: Kubelet '{{ $labels.node }}' 正在运行的 Pod 数量占其容量的 {{ $value | humanizePercentage }}。
@@ -59,7 +59,7 @@ spec:
         by (cluster, node) > 2
       for: 15m
       labels:
-        severity: warning
+        severity: critical
     - alert: Kubelet 发生 Pleg
       annotations:
         description: Kubelet Pod 生命周期事件生成器在节点 {{ $labels.node }} 上的99百分位持续时间为 {{ $value }} 秒。
@@ -69,7 +69,7 @@ spec:
         >= 10
       for: 5m
       labels:
-        severity: warning
+        severity: critical
 #    - alert: KubeletPodStartUpLatencyHigh
 #      annotations:
 #        description: Kubelet Pod 启动的99百分位延迟在节点 {{ $labels.node }} 上为 {{ $value }} 秒。

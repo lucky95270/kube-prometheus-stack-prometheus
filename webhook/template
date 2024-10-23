@@ -8,13 +8,13 @@
     {{ $urimsg = print $urimsg $key "%3D%22" $value "%22%2C" -}}
   {{ end -}}
 
-{{- $ownerKind := $alert.labels.owner_kind | toLower -}}  # 获取 owner_kind，并转换为小写
+{{- $ownerKind := $alert.labels.owner_kind | default "" | toLower -}}
 {{- $controllerType := "" -}}
 
 {{- if eq $ownerKind "replicaset" -}}
-  {{- $controllerType = "deployment" -}}  # 将 ReplicaSet 视为 Deployment
+  {{- $controllerType = "deployment" -}}
 {{- else -}}
-  {{- $controllerType = printf "%ss" $ownerKind -}}  # 其他情况正常处理
+  {{- $controllerType = printf "%ss" $ownerKind -}}
 {{- end -}}
 
 {{ $controllerName := $alert.labels.owner_name -}}
