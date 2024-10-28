@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: blackbox-coredns
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack  # prometheus 通过该标签来加载 Monitor
+spec:
+  jobName: blackbox-coredns
+  interval: 10s
+  module: dns
+  prober:                        # 指定blackbox的地址
+    url: blackbox-exporter.monitoring:19115 # blackbox-exporter 的 地址 和 http端口
+    path: /probe                 # 路径
+  targets:
+    staticConfig:
+      static:
+      - kube-dns.kube-system:53   # 要检测的 url

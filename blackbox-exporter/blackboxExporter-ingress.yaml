@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app: blackbox-exporter 
+  name: blackbox-exporter 
+  namespace: monitoring
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: blackbox-exporter.meta42.indc.sit.vnet.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: blackbox-exporter
+            port:
+              number: 19115
+        path: /
+        pathType: Prefix

@@ -169,7 +169,7 @@ alertmanager:
     enabled: true
     ingressClassName: nginx
     hosts:
-    - alertmanager.taicang.local
+    - alertmanager.demo.com
     paths:
     - /
   secret:
@@ -295,7 +295,7 @@ grafana:
     enabled: true
     ingressClassName: nginx
     hosts:
-    - grafana.taicang.local
+    - grafana.demo.com
     path: /
     tls: []
   sidecar:
@@ -725,7 +725,7 @@ prometheus:
     enabled: true
     ingressClassName: nginx
     hosts:
-    - prometheus.taicang.local
+    - prometheus.demo.com
     paths:
     - /
   ingressPerReplica:
