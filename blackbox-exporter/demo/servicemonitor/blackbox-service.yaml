@@ -1,0 +1,43 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: blackbox-service
+  namespace: monitoring  # ServiceMonitor的命名空间
+  labels:
+    release: kube-prometheus-stack  # Prometheus Operator的release名称
+spec:
+  selector:
+    matchExpressions:
+      - { key: prometheus.io/http-probe, operator: In, values: ["true"] }
+    matchLabels:
+      release: kube-prometheus-stack
+  endpoints:
+    - interval: 30s
+      path: /probe
+      params:
+        module:
+        - http_2xx
+      relabelings:
+      - sourceLabels: [__meta_kubernetes_service_annotation_prometheus_io_http_probe]
+        action: keep
+        regex: "true"
+      - sourceLabels:
+        - "__meta_kubernetes_service_name"
+        - "__meta_kubernetes_namespace"
+        - "__meta_kubernetes_service_annotation_prometheus_io_http_probe_port"
+        - "__meta_kubernetes_service_annotation_prometheus_io_http_probe_path"
+        targetLabel: __param_target
+        regex: (.+);(.+);(.+);(.+)
+        replacement: $1.$2:$3$4
+      - targetLabel: __address__
+        replacement: blackbox-exporter.monitoring:19115
+      - sourceLabels: [__param_target]
+        targetLabel: instance
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - sourceLabels: [__meta_kubernetes_namespace]
+        targetLabel: serivce_namespace
+      - sourceLabels: [__meta_kubernetes_service_name]
+        targetLabel: service_name
+  namespaceSelector:
+    any: true  # 监控所有命名空间

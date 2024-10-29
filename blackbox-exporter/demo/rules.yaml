@@ -1,0 +1,154 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/name: kube-prometheus
+    app.kubernetes.io/part-of: kube-prometheus
+    prometheus: k8s
+    role: alert-rules
+    release: kube-prometheus-stack
+  name: blackbox-exporter-alerts
+  namespace: monitoring
+spec:
+  groups:
+    - name: blackbox-exporter-alerts
+      rules:
+        ## 1. 探测失败
+        - alert: 黑盒探测失败
+          expr: probe_success == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "黑盒探测失败：{{ $labels.instance }}"
+            description: "黑盒探测失败，目标为 {{ $labels.instance }}。"
+
+        ## 2. HTTP 状态码异常
+        - alert: HTTP状态码异常
+          expr: probe_http_status_code != 200
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "HTTP 状态码异常：{{ $labels.instance }}"
+            description: "HTTP 探测返回了非 200 的状态码，目标为 {{ $labels.instance }}，返回状态码 {{ $value }}。"
+
+        ## 3. 请求超时
+        - alert: 黑盒探测请求超时
+          expr: probe_duration_seconds > 10
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "探测请求超时：{{ $labels.instance }}"
+            description: "探测请求时间超过了 10 秒，目标为 {{ $labels.instance }}。"
+
+        ## 4. HTTP 响应时间告警（轻度）
+        - alert: HTTP响应时间过长（轻度）
+          expr: probe_duration_seconds > 3
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "HTTP 响应时间过长：{{ $labels.instance }}"
+            description: "HTTP 响应时间超过 3 秒，目标为 {{ $labels.instance }}。"
+
+        ## 5. HTTP 响应时间告警（严重）
+        - alert: HTTP响应时间过长（严重）
+          expr: probe_duration_seconds > 5
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "HTTP 响应时间严重过长：{{ $labels.instance }}"
+            description: "HTTP 响应时间超过 5 秒，目标为 {{ $labels.instance }}。"
+
+        ## 6. DNS 探测失败
+        - alert: DNS探测失败
+          expr: probe_dns_lookup_time_seconds == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "DNS 探测失败：{{ $labels.instance }}"
+            description: "DNS 查询失败，目标为 {{ $labels.instance }}。"
+
+        ## 7. TCP 连接失败
+        - alert: TCP连接失败
+          expr: probe_tcp_connect_success == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "TCP 连接失败：{{ $labels.instance }}"
+            description: "TCP 连接失败，目标为 {{ $labels.instance }}。"
+
+        ## 8. ICMP 探测失败
+        - alert: ICMP探测失败
+          expr: probe_icmp_success == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "ICMP 探测失败：{{ $labels.instance }}"
+            description: "ICMP 探测失败，目标为 {{ $labels.instance }}。"
+
+        ## 9. DNS 响应时间过长
+        - alert: DNS响应时间过长
+          expr: probe_dns_lookup_time_seconds > 2
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "DNS 响应时间过长：{{ $labels.instance }}"
+            description: "DNS 响应时间超过 2 秒，目标为 {{ $labels.instance }}。"
+
+        ## 10. 网络抖动（Jitter）告警
+        - alert: 网络抖动过高
+          expr: probe_duration_seconds > avg_over_time(probe_duration_seconds[10m]) * 1.5
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "网络抖动过高：{{ $labels.instance }}"
+            description: "网络抖动异常，过去 10 分钟内目标为 {{ $labels.instance }}。"
+
+        ## 11. 网络丢包率过高
+        - alert: 网络丢包率过高
+          expr: (probe_icmp_duration_seconds / probe_duration_seconds) < 0.95
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "高丢包率：{{ $labels.instance }}"
+            description: "网络丢包率超过 5%，目标为 {{ $labels.instance }}。"
+
+        ## 12. TLS 证书即将过期
+        - alert: TLS证书即将过期
+          expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 30
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "TLS 证书即将到期：{{ $labels.instance }}"
+            description: "TLS 证书将在 30 天内过期，目标为 {{ $labels.instance }}。"
+
+        ## 13. TLS 证书即将过期
+        - alert: TLS证书即将过期
+          expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 15
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "TLS 证书即将到期：{{ $labels.instance }}"
+            description: "TLS 证书将在 15 天内过期，目标为 {{ $labels.instance }}。"
+
+        ## 13. TLS 证书即将过期
+        - alert: TLS证书即将过期
+          expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 7
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "TLS 证书即将到期：{{ $labels.instance }}"
+            description: "TLS 证书将在 7 天内过期，目标为 {{ $labels.instance }}。"

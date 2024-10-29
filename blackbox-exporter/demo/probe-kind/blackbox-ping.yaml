@@ -16,4 +16,3 @@ spec:
     staticConfig:
       static:
       - blackbox-exporter.monitoring   # 要检测的 url
-      #- 192.18.238.226

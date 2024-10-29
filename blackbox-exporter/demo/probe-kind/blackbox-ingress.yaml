@@ -1,0 +1,37 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: blackbox-ingress
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack  # prometheus 通过该标签来加载 Monitor
+spec:
+  jobName: blackbox-ingress
+  prober:
+    url: blackbox-exporter.monitoring:19115
+    path: /probe
+  module: http_2xx
+  targets:
+    ingress:      
+      namespaceSelector:
+        # 监测所有 namespace
+        any: true      
+        # 只监测指定 namespace 的 ingress
+        #matchNames:
+        #- default  
+        #- monitoring
+      # 只监测配置了标签 prometheus.io/http-probe: true 的 ingress
+      selector:
+        matchLabels:
+          prometheus.io/http-probe: "true"
+       # 只监测配置了注解 prometheus.io/http_probe: true 的 ingress
+      #relabelingConfigs: 
+      #- action: keep
+      #  sourceLabels:
+      #  - __meta_kubernetes_ingress_annotation_prometheus_io_http_probe
+      #- sourceLabels:
+      #  - "__meta_kubernetes_ingress_scheme"
+      #  - "__meta_kubernetes_ingress_host"
+      #  - "__meta_kubernetes_ingress_annotation_prometheus_io_http_probe_port"
+      #  - "__meta_kubernetes_ingress_path"
+      #  regex: "true"

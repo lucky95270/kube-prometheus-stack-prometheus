@@ -1,0 +1,44 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: blackbox-ingress
+  namespace: monitoring  # ServiceMonitor的命名空间
+  labels:
+    release: kube-prometheus-stack  # Prometheus Operator的release名称
+spec:
+  selector:
+    matchExpressions:
+      - { key: prometheus.io/http-probe, operator: In, values: ["true"] }
+    matchLabels:
+      release: kube-prometheus-stack
+  endpoints:
+    - interval: 30s
+      path: /probe
+      params:
+        module:
+        - http_2xx
+      ## 设置只监测 Annotation 里配置了 prometheus.io/http_probe: true 的 ingress
+      relabelings:
+      - sourceLabels: [__meta_kubernetes_ingress_annotation_prometheus_io_http_probe]
+        action: keep
+        regex: "true"
+      - sourceLabels: 
+        - "__meta_kubernetes_ingress_scheme"
+        - "__meta_kubernetes_ingress_host"
+        - "__meta_kubernetes_ingress_annotation_prometheus_io_http_probe_port"
+        - "__meta_kubernetes_ingress_path"
+        targetLabel: __param_target
+        regex: (.+);(.+);(.+);(.+)
+        replacement: ${1}://${2}:${3}${4}
+      - targetLabel: __address__
+        replacement: blackbox-exporter.monitoring:19115
+      - sourceLabels: [__param_target]
+        targetLabel: instance
+      - action: labelmap
+        regex: __meta_kubernetes_ingress_label_(.+)
+      - sourceLabels: [__meta_kubernetes_namespace]
+        targetLabel: ingress_namespace
+      - sourceLabels: [__meta_kubernetes_ingress_name]
+        targetLabel: ingress_name
+  namespaceSelector:
+    any: true  # 监控所有命名空间

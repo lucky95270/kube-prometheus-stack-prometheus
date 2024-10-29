@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appv1
+  labels:
+    app: appv1
+spec:
+  selector:
+    matchLabels:
+      app: appv1
+  template:
+    metadata:
+      labels:
+        app: appv1
+    spec:
+      containers:
+      - image: nginx:alpine
+        name: appv1
+        command: ["/bin/sh", "-c", "echo '你好, 这是（王先森）APP-v1服务中心'>/usr/share/nginx/html/index.html;nginx -g 'daemon off;'"]
+        ports:
+        - containerPort: 80
+          name: portv1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: appv1
+  labels:
+    release: kube-prometheus-stack  # Prometheus Operator的release名称,使其kubernetes自动发现该ingress
+  annotations:
+    prometheus.io/http-probe: "true"           # 控制是否监测
+    prometheus.io/http-probe-path: /           # 控制监测路径
+    prometheus.io/http-probe-port: "80"        # 控制监测端口
+spec:
+  selector:
+    app: appv1
+  ports:
+    - name: http
+      port: 80
+      targetPort: portv1
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: whoami
+  labels:
+    app: whoami
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: whoami
+  template:
+    metadata:
+      labels:
+        app: whoami
+    spec:
+      containers:
+        - name: whoami
+          image: containous/whoami
+          ports:
+            - name: web
+              containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whoami
+spec:
+  ports:
+    - protocol: TCP
+      name: web
+      port: 80
+  selector:
+    app: whoami
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-web
+  namespace: default
+  labels:
+    prometheus.io/http-probe: "true" # 用于blacbox发现监测
+    release: kube-prometheus-stack  # Prometheus Operator的release名称,使其kubernetes自动发现该ingress
+  annotations:
+    # 添加如下项 
+    #prometheus.io/http-probe: "true"     # 用于控制是否监测
+    #prometheus.io/http-probe-port: "80"  # 用于控制监测端口
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: whoami.od.com
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: appv1
+            port:
+              number: 80
+      - pathType: Prefix
+        path: /test
+        backend:
+          service:
+            name: appv1
+            port:
+              number: 80
+  - host: whoami.od.com
+    http:
+      paths:
+      - pathType: Prefix
+        path: /whoami
+        backend:
+          service:
+            name: whoami
+            port:
+              number: 80
