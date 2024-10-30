@@ -82,22 +82,6 @@ spec:
 #        severity: warning
     - alert: Kubelet 客户端证书到期
       annotations:
-        description: 节点 {{ $labels.node }} 上的 Kubelet 客户端证书将在 {{ $value | humanizeDuration }} 后过期。
-        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeletclientcertificateexpiration 
-        summary: Kubelet 客户端证书即将过期。
-      expr: kubelet_certificate_manager_client_ttl_seconds < 604800
-      labels:
-        severity: warning
-    - alert: Kubelet 客户端证书到期
-      annotations:
-        description: 节点 {{ $labels.node }} 上的 Kubelet 客户端证书将在 {{ $value | humanizeDuration }} 后过期。
-        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeletclientcertificateexpiration 
-        summary: Kubelet 客户端证书即将过期。
-      expr: kubelet_certificate_manager_client_ttl_seconds < 86400
-      labels:
-        severity: critical
-    - alert: Kubelet 客户端证书到期
-      annotations:
         description: 节点 {{ $labels.node }} 上的 Kubelet 服务器证书将在 {{ $value | humanizeDuration }} 后过期。
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeletservercertificateexpiration 
         summary: Kubelet 服务器证书即将过期。
