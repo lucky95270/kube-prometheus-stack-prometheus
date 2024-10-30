@@ -28,7 +28,7 @@ spec:
           expr: probe_http_status_code != 200
           for: 1m
           labels:
-            severity: warning
+            severity: critical
           annotations:
             summary: "HTTP 状态码异常：{{ $labels.instance }}"
             description: "HTTP 探测返回了非 200 的状态码，目标为 {{ $labels.instance }}，返回状态码 {{ $value }}。"
@@ -38,7 +38,7 @@ spec:
           expr: probe_duration_seconds > 10
           for: 1m
           labels:
-            severity: warning
+            severity: critical
           annotations:
             summary: "探测请求超时：{{ $labels.instance }}"
             description: "探测请求时间超过了 10 秒，目标为 {{ $labels.instance }}。"
@@ -138,7 +138,7 @@ spec:
           expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 15
           for: 1h
           labels:
-            severity: warning
+            severity: critical
           annotations:
             summary: "TLS 证书即将到期：{{ $labels.instance }}"
             description: "TLS 证书将在 15 天内过期，目标为 {{ $labels.instance }}。"
@@ -148,7 +148,7 @@ spec:
           expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 7
           for: 1h
           labels:
-            severity: warning
+            severity: critical
           annotations:
             summary: "TLS 证书即将到期：{{ $labels.instance }}"
             description: "TLS 证书将在 7 天内过期，目标为 {{ $labels.instance }}。"
