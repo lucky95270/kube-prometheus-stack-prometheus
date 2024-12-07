@@ -37,14 +37,14 @@ spec:
       labels:
         severity: critical
 
-    - alert: 节点内存使用率大于70%
+    - alert: 节点内存使用率大于60%
       annotations:
         description: 在节点名 {{ $labels.nodename }} 节点IP ({{ $labels.instance }}) 上内存使用率为 {{ printf "%.2f" $value }}%
         summary: 节点内存即将耗尽
       expr: |-
         (1 - ((node_memory_MemFree_bytes{job="node-exporter"} + node_memory_Cached_bytes{job="node-exporter"} + node_memory_Buffers_bytes{job="node-exporter"}) 
               / node_memory_MemTotal_bytes{job="node-exporter"}))
-        * on(instance) group_left(nodename) node_uname_info * 100 > 70
+        * on(instance) group_left(nodename) node_uname_info * 100 > 60
       for: 5m
       labels:
         severity: warning
@@ -63,7 +63,7 @@ spec:
 
     - alert: 节点文件系统即将耗尽空间
       expr: |-
-        (node_filesystem_avail_bytes{fstype!="",job="node-exporter"} / node_filesystem_size_bytes{fstype!="",job="node-exporter"} * 100 < 20 
+        (node_filesystem_avail_bytes{fstype!="",job="node-exporter"} / node_filesystem_size_bytes{fstype!="",job="node-exporter"} * 100 < 40 
         and node_filesystem_readonly{fstype!="",job="node-exporter"} == 0) 
         * on(instance) group_left(nodename) node_uname_info
       for: 5m
@@ -71,8 +71,8 @@ spec:
         cluster: critical
         type: node
       annotations:
-        description: 节点 {{ $labels.nodename }} ({{ $labels.instance }}) 上的 `{{ $labels.device }}` 文件系统只剩下 {{ printf "%.2f" $value }}% 的可用空间。
-        summary: 节点文件系统剩余空间不足 20%;
+        description: 节点 {{ $labels.nodename }} ({{ $labels.instance }}) 上的 {{ $labels.device }} 文件系统只剩下 {{ printf "%.2f" $value }}% 的可用空间。
+        summary: 节点文件系统剩余空间不足 40%
 
     - alert: 节点文件系统空间
       annotations:
@@ -89,7 +89,7 @@ spec:
         )
       for: 1h
       labels:
-        severity: warning
+        severity: critical
 
     - alert: 节点文件系统几乎超出存储空间
       annotations:
@@ -163,7 +163,7 @@ spec:
       annotations:
         description: '节点 {{ $labels.nodename }} (实例: {{ $labels.instance }}, 设备: {{ $labels.device }}) 文件系统只剩下 {{ printf "%.2f" $value }}% 的可用空间, POD正在被驱逐'
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemalmostoutofspace
-        summary: 文件系统只剩下不到5%的空间,
+        summary: 文件系统只剩下不到5%的空间
       expr: |-
         (
           node_filesystem_avail_bytes{job="node-exporter",fstype!=""}
@@ -191,7 +191,7 @@ spec:
         )
       for: 1h
       labels:
-        severity: warning
+        severity: critical
     - alert: 节点文件系统文件数填充过多
       annotations:
         description: 在 {{ $labels.instance }} 上的 {{ $labels.device }} 文件系统中只剩下 {{ printf "%.2f" $value }}% 的可用inode，并且正在迅速填满。
@@ -221,7 +221,7 @@ spec:
         )
       for: 1h
       labels:
-        severity: warning
+        severity: critical
     - alert: 节点文件系统即将无可用文件数
       annotations:
         description: 在 {{ $labels.instance }} 上的 {{ $labels.device }} 文件系统中只剩下 {{ printf "%.2f" $value }}% 的可用inode。
@@ -245,7 +245,7 @@ spec:
         > 0.01
       for: 1h
       labels:
-        severity: warning
+        severity: critical
     - alert: 节点网络传输错误
       annotations:
         description: '{{ $labels.instance }} 的 {{ $labels.device }} 接口在过去两分钟内遇到了 {{ printf "%.0f" $value }} 次传输错误。'
@@ -255,7 +255,7 @@ spec:
         > 0.01
       for: 1h
       labels:
-        severity: warning
+        severity: critical
     - alert: 节点连接跟踪条目使用率高
       annotations:
         description: '{{ $value | humanizePercentage }} 的conntrack条目已被使用。'
@@ -263,7 +263,7 @@ spec:
         summary: conntrack的数量接近限制;当连接跟踪条目的使用率很高时，可能意味着网络流量很大，或者存在某些异常流量模式，这可能会导致连接跟踪表满，从而影响新的连接建立。
       expr: (node_nf_conntrack_entries / node_nf_conntrack_entries_limit) > 0.75
       labels:
-        severity: warning
+        severity: critical
     - alert: 节点文本文件收集器抓取错误
       annotations:
         description: 'Node Exporter 文本文件收集器未能抓取数据'
@@ -271,7 +271,7 @@ spec:
         summary: Node Exporter 文本文件收集器抓取失败;如果TFC在抓取过程中遇到错误，比如文件不存在、权限问题或者文件格式错误等，这个规则就会触发警报。
       expr: node_textfile_scrape_error{job="node-exporter"} == 1
       labels:
-        severity: warning
+        severity: critical
     - alert: 节点时钟偏差检测
       annotations:
         description: '{{ $labels.instance }} 的时钟与标准时间偏差超过300秒。确保此主机上正确配置了NTP。'
@@ -291,7 +291,7 @@ spec:
         )
       for: 10m
       labels:
-        severity: warning
+        severity: critical
     - alert: 节点时钟未同步
       annotations:
         description: '{{ $labels.instance }} 的时钟未同步。确保此主机上配置了NTP。'
@@ -303,7 +303,7 @@ spec:
         node_timex_maxerror_seconds >= 16
       for: 10m
       labels:
-        severity: warning
+        severity: critical
     - alert: 节点RAID降级
       annotations:
         description: '{{ $labels.instance }} 上的 RAID 数组 {{ $labels.device }} 由于一个或多个磁盘故障处于降级状态。备用驱动器数量不足以自动修复问题。'
@@ -333,7 +333,7 @@ spec:
         )
       for: 15m
       labels:
-        severity: warning
+        severity: critical
     - alert: 节点文件描述符限制
       annotations:
         description: '{{ $labels.instance }} 的文件描述符限制当前为 {{ printf "%.2f" $value }}%。'

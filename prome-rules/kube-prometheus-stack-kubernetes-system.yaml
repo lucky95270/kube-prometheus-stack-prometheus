@@ -22,7 +22,7 @@ spec:
         > 1
       for: 15m
       labels:
-        severity: warning
+        severity: critical
     - alert: Kube 客户端错误
       annotations:
         description: Kubernetes API 服务器客户端 '{{ $labels.job }}/{{ $labels.instance }}' 正在经历 {{ $value | humanizePercentage }} 的错误率。
@@ -35,4 +35,4 @@ spec:
         > 0.01
       for: 15m
       labels:
-        severity: warning
+        severity: critical

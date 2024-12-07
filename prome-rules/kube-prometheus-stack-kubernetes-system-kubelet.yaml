@@ -49,7 +49,7 @@ spec:
         ) > 0.95
       for: 15m
       labels:
-        severity: info
+        severity: warning
     - alert: Kube 节点就绪状态不稳定
       annotations:
         description: 节点 {{ $labels.node }} 的准备就绪状态在过去15分钟内改变了 {{ $value }} 次。
@@ -105,7 +105,7 @@ spec:
         > 0
       for: 15m
       labels:
-        severity: warning
+        severity: critical
     - alert: Kubelet 服务端证书更新失败
       annotations:
         description: Kubelet 在节点 {{ $labels.node }} 上未能更新其服务器证书（在过去5分钟内有 {{ $value | humanize }} 次错误）。
@@ -114,7 +114,7 @@ spec:
       expr: increase(kubelet_server_expiration_renew_errors[5m]) > 0
       for: 15m
       labels:
-        severity: warning
+        severity: critical
     - alert: Kubelet 关闭
       annotations:
         description: Kubelet 已从 Prometheus 目标发现中消失。

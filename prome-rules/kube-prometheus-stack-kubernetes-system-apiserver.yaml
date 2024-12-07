@@ -41,7 +41,7 @@ spec:
       expr: sum by(name, namespace)(increase(aggregator_unavailable_apiservice_total[10m]))
         > 4
       labels:
-        severity: warning
+        severity: critical
     - alert: Kube API 服务部分关闭
       annotations:
         description: Kubernetes 聚合 API {{ $labels.name }}/{{ $labels.namespace }} 在过去 10 分钟内仅 {{ $value | humanize }}% 的时间可用。
@@ -51,7 +51,7 @@ spec:
         * 100 < 85
       for: 5m
       labels:
-        severity: warning
+        severity: critical
     - alert: Kube API 服务全部关闭
       annotations:
         description: KubeAPI 已从 Prometheus 目标发现中消失。
@@ -71,4 +71,4 @@ spec:
         ) > 0.20
       for: 5m
       labels:
-        severity: warning
+        severity: critical

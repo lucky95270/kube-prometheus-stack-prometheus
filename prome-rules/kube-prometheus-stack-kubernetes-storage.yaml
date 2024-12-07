@@ -76,6 +76,7 @@ spec:
       for: 1m
       labels:
         severity: critical
+
     - alert: Kube 持久化存储 Inodes
       annotations:
         description: 根据最近的采样，命名空间 {{ $labels.namespace }} 中的 {{ $labels.persistentvolumeclaim }} 声明的持久卷预计在四天内耗尽inode。目前还有 {{ $value | humanizePercentage }} 的inode是空闲的。
@@ -98,6 +99,7 @@ spec:
       for: 1h
       labels:
         severity: warning
+
     - alert: Kube 持久化存储错误
       annotations:
         description: 持久卷 {{ $labels.persistentvolume }} 的状态为 {{ $labels.phase }}。

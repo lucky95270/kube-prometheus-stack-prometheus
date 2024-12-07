@@ -28,7 +28,7 @@ spec:
         > 0
       for: 3m
       labels:
-        severity: warning
+        severity: critical
 
     - alert: KubePod 容器报错
       annotations:
@@ -79,7 +79,7 @@ spec:
         kube_deployment_metadata_generation{job="kube-state-metrics", namespace=~".*"}
       for: 15m
       labels:
-        severity: warning
+        severity: critical
     - alert: KubeDeployment 副本数量不匹配
       annotations:
         description: 部署 {{ $labels.namespace }}/{{ $labels.deployment }} 已经超过15分钟没有达到预期的副本数量。
@@ -97,7 +97,7 @@ spec:
         )
       for: 15m
       labels:
-        severity: warning
+        severity: critical
     - alert: KubeStatefulSet 副本数量不匹配
       annotations:
         description: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }}已经超过15分钟没有达到预期的副本数量。
@@ -115,7 +115,7 @@ spec:
         )
       for: 15m
       labels:
-        severity: warning
+        severity: critical
     - alert: KubeStatefulSet 错误回滚失败
       annotations:
         description: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} 的代数不匹配，这表明StatefulSet失败但未回滚。
@@ -127,7 +127,7 @@ spec:
         kube_statefulset_metadata_generation{job="kube-state-metrics", namespace=~".*"}
       for: 15m
       labels:
-        severity: warning
+        severity: critical
     - alert: KubeStatefulSet 更新失败
       annotations:
         description: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }}更新未成功推出。
@@ -153,7 +153,7 @@ spec:
         )
       for: 15m
       labels:
-        severity: warning
+        severity: critical
     - alert: KubeDaemonSet 重载失败
       annotations:
         description: DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} 至少15分钟内未完成或没有进展。
@@ -185,7 +185,7 @@ spec:
         )
       for: 15m
       labels:
-        severity: warning
+        severity: critical
     - alert: Kube 容器创建失败
       annotations:
         description: |
@@ -207,7 +207,7 @@ spec:
         > 0
       for: 1h
       labels:
-        severity: warning
+        severity: critical
     - alert: KubeDaemonSet 调度失败
       annotations:
         description: 有 {{ $value }} 个 DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} 的 Pods 未被调度。
@@ -219,4 +219,4 @@ spec:
         kube_daemonset_status_current_number_scheduled{job="kube-state-metrics", namespace=~".*"} > 0
       for: 10m
       labels:
-        severity: warning
+        severity: critical

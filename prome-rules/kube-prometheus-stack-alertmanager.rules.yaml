@@ -53,7 +53,7 @@ spec:
         > 0.01
       for: 5m
       labels:
-        severity: warning
+        severity: critical
     - alert: Alertmanager 集群所有实例发送警报失败
       annotations:
         description: '从 {{$labels.job}} 集群中的任何实例向 {{ $labels.integration }} 发送的最小通知失败率为 {{ $value | humanizePercentage }}。'

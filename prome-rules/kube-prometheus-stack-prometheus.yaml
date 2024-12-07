@@ -36,7 +36,7 @@ spec:
         )
       for: 15m
       labels:
-        severity: warning
+        severity: critical
     - alert: Prometheus向部分Alertmanager发送告警错误
       annotations:
         description: 在向特定的 Alertmanager 发送告警时，Prometheus {{$labels.namespace}}/{{$labels.pod}} 遇到了 {{ printf "%.1f" $value }}% 的错误。
@@ -62,7 +62,7 @@ spec:
         max_over_time(prometheus_notifications_alertmanagers_discovered{job="kube-prometheus-stack-prometheus",namespace="monitoring"}[5m]) < 1
       for: 10m
       labels:
-        severity: warning
+        severity: critical
     - alert: Prometheus TSDB重新加载失败
       annotations:
         description: 在过去3小时内，Prometheus {{$labels.namespace}}/{{$labels.pod}} 检测到 {{ $value | humanize }} 次重新加载失败。
@@ -72,7 +72,7 @@ spec:
         > 0
       for: 4h
       labels:
-        severity: warning
+        severity: critical
     - alert: Prometheus TSDB压缩失败
       annotations:
         description: 在过去3小时内，Prometheus {{$labels.namespace}}/{{$labels.pod}} 检测到 {{ $value | humanize }} 次压缩失败。
@@ -82,7 +82,7 @@ spec:
         > 0
       for: 4h
       labels:
-        severity: warning
+        severity: critical
     - alert: Prometheus未摄取样本
       annotations:
         description: Prometheus {{$labels.namespace}}/{{$labels.pod}} 没有在摄取样本。
@@ -98,7 +98,7 @@ spec:
         )
       for: 10m
       labels:
-        severity: warning
+        severity: critical
     - alert: Prometheus时间戳重复
       annotations:
         description: Prometheus {{$labels.namespace}}/{{$labels.pod}} 每秒丢弃了 {{ printf "%.4g" $value  }} 个具有不同值但时间戳重复的样本。
@@ -108,7 +108,7 @@ spec:
         > 0
       for: 10m
       labels:
-        severity: warning
+        severity: critical
     - alert: Prometheus时间戳顺序错误
       annotations:
         description: Prometheus {{$labels.namespace}}/{{$labels.pod}} 每秒丢弃了 {{ printf "%.4g" $value  }} 个时间戳错序的样本。
@@ -118,7 +118,7 @@ spec:
         > 0
       for: 10m
       labels:
-        severity: warning
+        severity: critical
     - alert: Prometheus远程存储失败
       annotations:
         description: Prometheus {{$labels.namespace}}/{{$labels.pod}} 未能将 {{ printf "%.1f" $value }}% 的样本发送到 {{ $labels.remote_name}}:{{ $labels.url }}。
