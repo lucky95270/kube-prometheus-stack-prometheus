@@ -30,34 +30,34 @@ spec:
       for: 1m
       labels:
         gseverity: critical
-    
+
     - alert: "etcd 高 fsync 持续时间"
       annotations:
-        message: 'etcd 集群 "{{ $labels.job }}": 99百分位的 fsync 持续时间为 {{ $value }}s（正常应小于 10ms），etcd 实例 {{ $labels.instance }}。'
+        message: 'etcd 集群 "{{ $labels.job }}": 99百分位的 fsync 持续时间为 {{ printf "%.2f" $value }}ms（正常应小于 10ms），etcd 实例 {{ $labels.instance }}。'
       expr: |
-        histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket{job=~".*etcd.*"}[5m])) > 0.01
+        histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket{job=~".*etcd.*"}[5m])) * 1000 > 15
       for: 3m
       labels:
         gseverity: critical
     
     - alert: "etcd 高提交持续时间"
       annotations:
-        message: 'etcd 集群 "{{ $labels.job }}": 99百分位的提交持续时间为 {{ $value }}s（正常应小于 120ms），etcd 实例 {{ $labels.instance }}。'
+        message: 'etcd 集群 "{{ $labels.job }}": 99百分位的提交持续时间为  {{ printf "%.2f" $value }}ms（正常应小于 120ms），etcd 实例 {{ $labels.instance }}。'
       expr: |
-        histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket{job=~".*etcd.*"}[5m])) > 0.12
+        histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket{job=~".*etcd.*"}[5m])) * 1000 > 12
       for: 3m
       labels:
         gseverity: critical
     
     - alert: "etcd 节点 RTT 持续时间过高"
       annotations:
-        message: 'etcd 集群 "{{ $labels.job }}": 节点 RTT 持续时间为 {{ $value }}s，etcd 实例 {{ $labels.instance }}。'
+        message: 'etcd 集群 "{{ $labels.job }}": 节点 RTT 持续时间为  {{ printf "%.2f" $value }}ms，etcd 实例 {{ $labels.instance }}。'
       expr: |
-        histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket[5m])) > 0.5
+        histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket[5m])) * 1000  > 50
       for: 3m
       labels:
         gseverity: warning
-    
+
     - alert: "etcd 磁盘空间不足"
       annotations:
         message: 'etcd 集群 "{{ $labels.job }}": etcd 实例 {{ $labels.instance }} 磁盘空间不足。'
