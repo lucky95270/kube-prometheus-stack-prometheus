@@ -15,99 +15,135 @@ spec:
     rules:
     - alert: "etcd 成员不足"
       annotations:
-        message: 'etcd 集群 "{{ $labels.job }}": 成员数量不足（期望至少有一半以上成员）。'
+        message: 'etcd 集群: 成员数量不足（{{ $value }}）。'
       expr: |
-        sum(up{job=~".*etcd.*"} == 1) by (job) < (count(up{job=~".*etcd.*"}) by (job) / 2)
+        sum(up{job=~".*etcd.*"} == bool 1) by (job) < ((count(up{job=~".*etcd.*"}) by (job) + 1) / 2)
       for: 3m
       labels:
-        gseverity: critical
+        severity: critical
     
     - alert: "etcd 无领导者"
       annotations:
-        message: 'etcd 集群 "{{ $labels.job }}": 成员 {{ $labels.instance }} 没有领导者。'
+        message: 'etcd 集群: 成员 {{ $labels.instance }} 无领导者。'
       expr: |
         etcd_server_has_leader{job=~".*etcd.*"} == 0
       for: 1m
       labels:
-        gseverity: critical
-
-    - alert: "etcd 高 fsync 持续时间"
+        severity: critical
+    
+    - alert: "etcd fsync 持续时间过高"
       annotations:
-        message: 'etcd 集群 "{{ $labels.job }}": 99百分位的 fsync 持续时间为 {{ printf "%.2f" $value }}ms（正常应小于 10ms），etcd 实例 {{ $labels.instance }}。'
+        message: 'etcd 集群: 99百分位的fsync持续时间为 {{ $value }}s，etcd实例 {{ $labels.instance }}。'
       expr: |
         histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket{job=~".*etcd.*"}[5m])) * 1000 > 15
       for: 3m
       labels:
-        gseverity: critical
+        severity: warning
     
-    - alert: "etcd 高提交持续时间"
+    - alert: "etcd 提交操作持续时间过高"
       annotations:
-        message: 'etcd 集群 "{{ $labels.job }}": 99百分位的提交持续时间为  {{ printf "%.2f" $value }}ms（正常应小于 120ms），etcd 实例 {{ $labels.instance }}。'
+        message: 'etcd 集群: 99百分位的提交持续时间为 {{ $value }}s，etcd实例 {{ $labels.instance }}。'
       expr: |
-        histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket{job=~".*etcd.*"}[5m])) * 1000 > 12
+        histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket{job=~".*etcd.*"}[5m]))* 1000 > 12
       for: 3m
       labels:
-        gseverity: critical
+        severity: warning
     
     - alert: "etcd 节点 RTT 持续时间过高"
       annotations:
-        message: 'etcd 集群 "{{ $labels.job }}": 节点 RTT 持续时间为  {{ printf "%.2f" $value }}ms，etcd 实例 {{ $labels.instance }}。'
+        message: 'etcd 集群: 节点 {{ $labels.instance }} 的 RTT 持续时间为 {{ $value }}s。'
       expr: |
         histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket[5m])) * 1000  > 50
       for: 3m
       labels:
-        gseverity: warning
-
+        severity: warning
+    
     - alert: "etcd 磁盘空间不足"
       annotations:
-        message: 'etcd 集群 "{{ $labels.job }}": etcd 实例 {{ $labels.instance }} 磁盘空间不足。'
+        message: 'etcd 集群: etcd 实例 {{ $labels.instance }} 的磁盘空间不足。'
       expr: |
         node_filesystem_avail_bytes{job=~".*etcd.*", mountpoint="/"} / node_filesystem_size_bytes{job=~".*etcd.*", mountpoint="/"} < 0.1
       for: 5m
       labels:
-        gseverity: critical
+        severity: critical
     
     - alert: "etcd 数据目录使用率过高"
       annotations:
-        message: 'etcd 集群 "{{ $labels.job }}": 数据目录使用率超过 90% 的实例 {{ $labels.instance }}。'
+        message: 'etcd 集群: 数据目录使用率超过 90%，etcd 实例 {{ $labels.instance }}。'
       expr: |
         etcd_debugging_mvcc_db_total_size_in_bytes{job=~".*etcd.*"} > 0.9 * node_filesystem_size_bytes{job=~".*etcd.*", mountpoint="/var/lib/etcd"}
       for: 5m
       labels:
-        gseverity: warning
+        severity: warning
     
     - alert: "etcd Leader 频繁更换"
       annotations:
-        message: 'etcd 集群 "{{ $labels.job }}": 领导者频繁更换，当前领导者为 {{ $labels.instance }}。'
+        message: 'etcd 集群: 领导者频繁更换，当前领导者为 {{ $labels.instance }}。'
       expr: |
         increase(etcd_server_leader_changes_seen_total{job=~".*etcd.*"}[10m]) > 3
       for: 10m
       labels:
-        gseverity: critical
+        severity: warning
     
     - alert: "etcd 同步数据失败"
       annotations:
-        message: 'etcd 集群 "{{ $labels.job }}": etcd 实例 {{ $labels.instance }} 无法同步数据到其他节点。'
+        message: 'etcd 集群: etcd 实例 {{ $labels.instance }} 无法同步数据到其他节点。'
       expr: |
         rate(etcd_server_proposals_failed_total{job=~".*etcd.*"}[5m]) > 0
       for: 5m
       labels:
-        gseverity: critical
+        severity: critical
     
     - alert: "etcd 存储碎片化"
       annotations:
-        message: 'etcd 集群 "{{ $labels.job }}": etcd 实例 {{ $labels.instance }} 的存储碎片化过高，建议优化存储或重新压缩。'
+        message: 'etcd 集群: etcd 实例 {{ $labels.instance }} 的存储碎片化过高，建议优化存储或重新压缩。'
       expr: |
         etcd_debugging_store_compaction_keys_total{job=~".*etcd.*"} > 10000
       for: 10m
       labels:
-        gseverity: warning
+        severity: warning
     
     - alert: "etcd 网络延迟过高"
       annotations:
-        message: 'etcd 集群 "{{ $labels.job }}": 节点间网络延迟过高，可能导致同步数据变慢，etcd 实例 {{ $labels.instance }}。'
+        message: 'etcd 集群: 节点 {{ $labels.instance }} 间网络延迟过高，可能导致同步数据变慢。'
       expr: |
         histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket[5m])) > 1
       for: 5m
       labels:
-        gseverity: warning
+        severity: critical
+    
+    - alert: "etcd 发送到其他成员的字节数异常"
+      annotations:
+        message: 'etcd 集群: etcd 实例 {{ $labels.instance }} 发送到其他成员的字节数异常，当前值为 {{ $value }}。'
+      expr: |
+        rate(etcd_network_peer_sent_bytes_total{job=~".*etcd.*"}[5m]) > 1000000
+      for: 10m
+      labels:
+        severity: warning
+
+    - alert: "etcd 从其他成员接收的字节数异常"
+      annotations:
+        message: 'etcd 集群: etcd 实例 {{ $labels.instance }} 从其他成员接收的字节数异常，当前值为 {{ $value }}。'
+      expr: |
+        rate(etcd_network_peer_received_bytes_total{job=~".*etcd.*"}[5m]) > 1000000
+      for: 10m
+      labels:
+        severity: warning
+
+    - alert: "etcd 发送到客户端的字节数异常"
+      annotations:
+        message: 'etcd 集群: etcd 实例 {{ $labels.instance }} 发送到客户端的字节数异常，当前值为 {{ $value }}。'
+      expr: |
+        rate(etcd_network_client_grpc_sent_bytes_total{job=~".*etcd.*"}[5m]) > 1000000
+      for: 10m
+      labels:
+        severity: warning
+
+    - alert: "etcd 从客户端接收的字节数异常"
+      annotations:
+        message: 'etcd 集群: etcd 实例 {{ $labels.instance }} 从客户端接收的字节数异常，当前值为 {{ $value }}。'
+      expr: |
+        rate(etcd_network_client_grpc_received_bytes_total{job=~".*etcd.*"}[5m]) > 1000000
+      for: 10m
+      labels:
+        severity: warning
