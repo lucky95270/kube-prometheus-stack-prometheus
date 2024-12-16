@@ -35,7 +35,7 @@ spec:
       annotations:
         message: 'etcd 集群: 99百分位，5分钟内的提交持续时间为 {{ printf "%.2f" $value }} ms，etcd实例 {{ $labels.instance }}。'
       expr: |
-        histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket{job=~".*etcd.*"}[5m])) * 1000 > 12
+        histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket{job=~".*etcd.*"}[5m])) * 1000 > 100
       for: 3m
       labels:
         severity: warning
