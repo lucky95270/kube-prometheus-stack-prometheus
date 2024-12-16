@@ -30,34 +30,34 @@ spec:
       for: 1m
       labels:
         severity: critical
-    
+
+    - alert: "etcd 提交操作持续时间过高"
+      annotations:
+        message: 'etcd 集群: 99百分位，5分钟内的提交持续时间为 {{ printf "%.2f" $value }} ms，etcd实例 {{ $labels.instance }}。'
+      expr: |
+        histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket{job=~".*etcd.*"}[5m])) * 1000 > 12
+      for: 3m
+      labels:
+        severity: warning
+  
     - alert: "etcd fsync 持续时间过高"
       annotations:
-        message: 'etcd 集群: 99百分位的fsync持续时间为 {{ $value }}s，etcd实例 {{ $labels.instance }}。'
+        message: 'etcd 集群: 99百分位，5分钟内的fsync持续时间为 {{ printf "%.2f" $value }} ms，etcd实例 {{ $labels.instance }}。'
       expr: |
         histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket{job=~".*etcd.*"}[5m])) * 1000 > 15
       for: 3m
       labels:
         severity: warning
-    
-    - alert: "etcd 提交操作持续时间过高"
-      annotations:
-        message: 'etcd 集群: 99百分位的提交持续时间为 {{ $value }}s，etcd实例 {{ $labels.instance }}。'
-      expr: |
-        histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket{job=~".*etcd.*"}[5m]))* 1000 > 12
-      for: 3m
-      labels:
-        severity: warning
-    
+  
     - alert: "etcd 节点 RTT 持续时间过高"
       annotations:
-        message: 'etcd 集群: 节点 {{ $labels.instance }} 的 RTT 持续时间为 {{ $value }}s。'
+        message: 'etcd 集群: 节点 {{ $labels.instance }} 的 RTT 5分中内的持续时间为 {{ printf "%.2f" $value }} ms。'
       expr: |
-        histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket[5m])) * 1000  > 50
+        histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket[5m])) * 1000 > 50
       for: 3m
       labels:
         severity: warning
-    
+
     - alert: "etcd 磁盘空间不足"
       annotations:
         message: 'etcd 集群: etcd 实例 {{ $labels.instance }} 的磁盘空间不足。'
