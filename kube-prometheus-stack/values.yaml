@@ -63,19 +63,19 @@ alertmanager:
       smtp_from: xiahediyijun@163.com  # 发件人邮箱地址
       smtp_smarthost: smtp.163.com:465  # 邮件服务器地址和端口
       smtp_auth_username: xiahediyijun@163.com  # 邮箱认证用户名
-      smtp_auth_password: NCYLASWFBVCGJVKB  # 邮箱认证密码
+      smtp_auth_password: 123456789 # 邮箱认证密码
       smtp_require_tls: false  # 启用 TLS 安全传输，确保邮件的加密传输安全
     route:
       group_by: ['alertname', 'namespace', 'instance', 'pod']  # 根据告警名称、命名空间、实例和 pod 进行分组，防止分散过多的重复告警
-      group_wait: 30s  # 在发送第一个告警前等待 30 秒，允许在短时间内合并更多告警
-      group_interval: 5m  # 告警组的发送间隔为 5 分钟，减少过于频繁的告警推送
-      repeat_interval: 4h  # 默认情况下，告警会每 4 小时重复一次，如果告警未恢复
+      group_wait: 30s  # 等待 30 秒以便可能会有更多的告警合并
+      group_interval: 5m  # 告警组发送间隔为 5 分钟
+      repeat_interval: 1h # 告警每 1 小时重复一次
       receiver: critical-alerts  # 默认告警接收器为 critical-alerts，处理严重告警
       routes:
       - match:
           severity: critical  # 匹配严重级别 (critical) 的告警
         receiver: critical-alerts  # 严重告警发送到 critical-alerts 接收器
-        group_interval: 1m  # 严重告警每 1 分钟可以发送一组
+        group_interval: 5m  # 严重告警每 5 分钟可以发送一组
         repeat_interval: 1h  # 严重告警每 1 小时重复提醒一次
       - match:
           severity: warning  # 匹配警告级别 (warning) 的告警
@@ -84,7 +84,15 @@ alertmanager:
       - match:
           severity: info  # 匹配信息级别 (info) 的告警
         receiver: info-alerts  # 信息告警发送到 info-alerts 接收器
-        repeat_interval: 12h  # 信息告警每 12 小时重复提醒一次
+        repeat_interval: 2h  # 信息告警每 2 小时重复提醒一次
+      ############################### Custom rules 自定义告警推送##################################
+      #### 李培亮 告警推送 ####
+      - match:
+          apps: app-pod
+          severity: app-pod-critical  # 匹配级别 (app-pod-critical) 的告警
+        receiver: app-pod-alerts  # 严重告警发送到 app-pod-alerts 接收器
+        group_interval: 5m  # 严重告警每 5 分钟可以发送一组
+        repeat_interval: 1h  # 严重告警每 1 小时重复提醒一次
     inhibit_rules:
       # 定义告警抑制规则，当较高优先级的告警存在时抑制较低优先级的告警
       - source_match:
@@ -122,6 +130,9 @@ alertmanager:
             headers: { Subject: "[正常告警-测试环境] " }  # 告警主题或这(从告警模版的变量中获取) {{ define "email.title" }}测试环境告警{{ end }}
             html: '{{ template "email.to.html" .}}'  # 邮箱内容(从告警模版的变量中获取)
             send_resolved: true  # 发送告警恢复通知
+      - name: app-pod-alerts  # 自定义告警推送接收器
+        webhook_configs:
+          - url: http://webhook-service:8080/prometheusalert?type=fs&tpl=prometheus-fs&fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxxxxxxxxxxxx
     templates:
       - '/etc/alertmanager/config/*.tmpl'
 

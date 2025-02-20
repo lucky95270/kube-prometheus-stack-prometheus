@@ -1,0 +1,55 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/name: kube-prometheus
+    app.kubernetes.io/part-of: kube-prometheus
+    prometheus: k8s
+    release: kube-prometheus-stack
+    role: alert-rules
+  name: kubernetes-app-pod
+  namespace: monitoring
+spec:
+  groups:
+  - name: kubernetes-app-pod
+    rules:
+    - alert: app pod 没有Running就绪
+      annotations:
+        description: ' ;命名空间: {{ $labels.namespace }} 控制器类型: {{ $labels.owner_kind }}
+          控制器名称: {{ $labels.owner_name }} Pod名称: {{ $labels.pod }} Pod_IP: {{ $labels.pod_ip
+          }} 容器名: {{ $labels.container }} 在节点 {{ $labels.node }} 处于非就绪状态'
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodnotready
+        summary: 已经超过10分钟处于非就绪状态
+      expr: |-
+        sum by (namespace, pod, node, pod_ip, container) (
+          max by(namespace, pod) (
+            kube_pod_status_phase{job="kube-state-metrics", namespace=~".*", phase!~"Running", pod=~"^(app-pod).*"}
+          )
+        ) * on(namespace, pod)
+        group_left(node, pod_ip, container)
+        kube_pod_info * on(namespace, pod)
+        group_left(owner_kind, owner_name)
+        kube_pod_owner > 0
+      for: 10m
+      labels:
+        apps: app-pod
+        severity: app-pod-critical
+    - alert: app Deployment 副本数量不匹配
+      annotations:
+        description: 部署 {{ $labels.namespace }}/{{ $labels.deployment }} 已经超过10分钟没有达到预期的副本数量。
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubedeploymentreplicasmismatch
+        summary: 部署未达到预期的副本数量;
+      expr: |-
+        (
+          kube_deployment_spec_replicas{job="kube-state-metrics", namespace=~".*", deployment=~"^(app-pod).*"}
+            >
+          kube_deployment_status_replicas_available{job="kube-state-metrics", namespace=~".*", deployment=~"^(app-pod).*"}
+        ) and (
+          changes(kube_deployment_status_replicas_updated{job="kube-state-metrics", namespace=~".*", deployment=~"^(app-pod).*"}[10m])
+            ==
+          0
+        )
+      for: 10m
+      labels:
+        apps: app-pod
+        severity: app-pod-critical
