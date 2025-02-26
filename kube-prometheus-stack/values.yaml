@@ -84,9 +84,9 @@ alertmanager:
       - match:
           severity: info  # 匹配信息级别 (info) 的告警
         receiver: info-alerts  # 信息告警发送到 info-alerts 接收器
-        repeat_interval: 2h  # 信息告警每 2 小时重复提醒一次
+        repeat_interval: 1h  # 信息告警每 2 小时重复提醒一次
       ############################### Custom rules 自定义告警推送##################################
-      #### 李培亮 告警推送 ####
+      #### 自定义告警推送 ####
       - match:
           apps: app-pod
           severity: app-pod-critical  # 匹配级别 (app-pod-critical) 的告警

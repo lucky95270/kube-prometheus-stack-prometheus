@@ -1,0 +1,68 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/name: kube-prometheus
+    app.kubernetes.io/part-of: kube-prometheus
+    prometheus: k8s
+    role: alert-rules
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-info-level-alerts
+  namespace: monitoring
+spec:
+  groups:
+  - name: 正常巡检信息
+    rules:
+      # 节点状态信息 (Ready/NotReady 状态)
+      - alert: "Kubernetes 节点状态信息"
+        annotations:
+          message:  "集群节点 {{ $labels.node }} 状态为 {{ if eq $labels.status \"false\" }}NotReady{{ else }}Ready{{ end }}。"
+        expr: |
+          kube_node_status_condition{condition="Ready",status="false"}
+        labels:
+          severity: info
+
+      # 节点 CPU 使用率信息
+      - alert: "Kubernetes 节点 CPU 使用情况信息"
+        annotations:
+          message: "集群节点 {{ $labels.node }} ({{ $labels.instance }}) 的 CPU 使用率为 {{ printf \"%.2f\" $value }}%。"
+        expr: |
+          (100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100))
+        labels:
+          severity: info
+
+      # 节点内存使用率信息
+      - alert: "Kubernetes 节点内存使用信息"
+        annotations:
+          message: "集群节点 {{ $labels.node }} ({{ $labels.instance }}) 的内存使用率为 {{ printf \"%.2f\" $value }}%。"
+        expr: |
+          ((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * 100
+        labels:
+          severity: info
+
+      # 节点磁盘使用率信息
+      - alert: "Kubernetes 节点磁盘使用信息"
+        annotations:
+          message: "集群节点 {{ $labels.node }} ({{ $labels.instance }}) 的根分区磁盘使用率为 {{ printf \"%.2f\" $value }}%。"
+        expr: |
+          (node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) / node_filesystem_size_bytes{mountpoint="/"} * 100
+        labels:
+          severity: info
+
+      # kube-apiserver 请求延迟信息
+      - alert: "Kubernetes API服务器请求延迟信息"
+        annotations:
+          message: "Kubernetes API Server 的 {{ $labels.verb }} 请求的 99% 响应时间为 {{ printf \"%.2f\" $value }} ms。"
+        expr: |
+          histogram_quantile(0.99, sum(rate(apiserver_request_duration_seconds_bucket[5m])) by (verb)) * 1000
+        labels:
+          severity: info
+
+      # Prometheus 存储使用率信息
+      - alert: "Prometheus TSDB 的存储使用率"
+        annotations:
+          message: "Prometheus 存储使用率为 {{ printf \"%.2f\" $value }}%。"
+        expr: |
+          (prometheus_tsdb_head_chunks / prometheus_tsdb_head_series) * 100
+        labels:
+          severity: info
