@@ -33,36 +33,36 @@ spec:
       - name: mysqld-exporter
         image: prom/mysqld-exporter
         args:
-        - --config.my-cnf=/etc/.mysqld_exporter.cnf
-        - --collect.info_schema.tables
-        - --collect.info_schema.innodb_tablespaces
-        - --collect.info_schema.innodb_metrics
-        - --collect.global_status
-        - --collect.global_variables
-        - --collect.slave_status
-        - --collect.info_schema.processlist
-        - --collect.perf_schema.tablelocks
-        - --collect.perf_schema.eventsstatements
-        - --collect.perf_schema.eventsstatementssum
-        - --collect.perf_schema.eventswaits
-        - --collect.auto_increment.columns
-        - --collect.binlog_size
-        - --collect.perf_schema.tableiowaits
-        - --collect.perf_schema.indexiowaits
-        - --collect.info_schema.userstats
-        - --collect.info_schema.clientstats
-        - --collect.info_schema.tablestats
-        - --collect.info_schema.schemastats
-        - --collect.perf_schema.file_events
-        - --collect.perf_schema.file_instances
-        - --collect.perf_schema.replication_group_member_stats
-        - --collect.perf_schema.replication_applier_status_by_worker
-        - --collect.slave_hosts
-        - --collect.info_schema.innodb_cmp
-        - --collect.info_schema.innodb_cmpmem
-        - --collect.info_schema.query_response_time
-        - --collect.engine_tokudb_status
-        - --collect.engine_innodb_status
+          - --config.my-cnf=/etc/.mysqld_exporter.cnf  # 指定MySQL配置文件路径
+          - --collect.info_schema.tables  # 收集信息模式中的表信息
+          - --collect.info_schema.innodb_tablespaces  # 收集InnoDB表空间信息
+          - --collect.info_schema.innodb_metrics  # 收集InnoDB指标信息
+          - --collect.global_status  # 收集MySQL全局状态信息
+          - --collect.global_variables  # 收集MySQL全局变量信息
+          - --collect.slave_status  # 收集从服务器状态信息
+          - --collect.info_schema.processlist  # 收集当前会话信息
+          - --collect.perf_schema.tablelocks  # 收集性能模式中的表锁信息
+          - --collect.perf_schema.eventsstatements  # 收集性能模式中的事件语句信息
+          - --collect.perf_schema.eventsstatementssum  # 收集性能模式中的事件语句汇总信息
+          - --collect.perf_schema.eventswaits  # 收集性能模式中的事件等待信息
+          - --collect.auto_increment.columns  # 收集自增列信息
+          - --collect.binlog_size  # 收集二进制日志大小信息
+          - --collect.perf_schema.tableiowaits  # 收集性能模式中的表IO等待信息
+          - --collect.perf_schema.indexiowaits  # 收集性能模式中的索引IO等待信息
+          - --collect.info_schema.userstats  # 收集用户统计信息
+          - --collect.info_schema.clientstats  # 收集客户端统计信息
+          - --collect.info_schema.tablestats  # 收集表统计信息
+          - --collect.info_schema.schemastats  # 收集模式统计信息
+          - --collect.perf_schema.file_events  # 收集性能模式中的文件事件信息
+          - --collect.perf_schema.file_instances  # 收集性能模式中的文件实例信息
+          - --collect.perf_schema.replication_group_member_stats  # 收集复制组成员统计信息
+          - --collect.perf_schema.replication_applier_status_by_worker  # 收集复制应用者状态信息
+          - --collect.slave_hosts  # 收集从服务器主机信息
+          - --collect.info_schema.innodb_cmp  # 收集InnoDB压缩信息
+          - --collect.info_schema.innodb_cmpmem  # 收集InnoDB压缩内存信息
+          - --collect.info_schema.query_response_time  # 收集查询响应时间信息
+          - --collect.engine_tokudb_status  # 收集TokuDB引擎状态信息
+          - --collect.engine_innodb_status  # 收集InnoDB引擎状态信息
         ports:
         - containerPort: 9104
           protocol: TCP
