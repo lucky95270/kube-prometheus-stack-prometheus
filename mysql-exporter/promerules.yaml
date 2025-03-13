@@ -22,7 +22,7 @@ spec:
         summary: MySQL 实例不可用 (实例 {{ $labels.instance }})
         description: "MySQL 实例在 {{ $labels.instance }} 不可用。\n  当前值 = {{ $value }}\n  标签 = {{ $labels }}"
 
-    - alert: MysqlTooManyConnections(>80%)
+    - alert: 告警！Mysql 活跃连接太多(>80%)
       expr: max_over_time(mysql_global_status_threads_connected[1m]) / mysql_global_variables_max_connections * 100 > 80
       for: 2m
       labels:
@@ -31,26 +31,17 @@ spec:
         summary: MySQL 连接数过多 (> 80%) (实例 {{ $labels.instance }})
         description: "MySQL 实例 {{ $labels.instance }} 的连接数超过 80%。\n  当前值 = {{ $value }}\n  标签 = {{ $labels }}"
 
-    - alert: MysqlHighPreparedStatementsUtilization(>80%)
-      expr: max_over_time(mysql_global_status_prepared_stmt_count[1m]) / mysql_global_variables_max_prepared_stmt_count * 100 > 80
+    - alert: 告警！Mysql 活跃线程较多
+      expr: max_over_time(mysql_global_status_prepared_stmt_count[1m]) / mysql_global_variables_max_prepared_stmt_count * 100 > 60
       for: 2m
       labels:
         severity: warning
       annotations:
-        summary: MySQL 预处理语句使用率过高 (> 80%) (实例 {{ $labels.instance }})
-        description: "MySQL 实例 {{ $labels.instance }} 的预处理语句使用率超过 80%。\n  当前值 = {{ $value }}\n  标签 = {{ $labels }}"
+        summary: MySQL 活跃线程较多 (> 60%) (实例 {{ $labels.instance }})
+        description: "MySQL 实例 {{ $labels.instance }} 的预处理语句使用率超过 60%。\n  当前值 = {{ $value }}\n  标签 = {{ $labels }}"
 
-    - alert: MysqlHighThreadsRunning
-      expr: max_over_time(mysql_global_status_threads_running[1m]) / mysql_global_variables_max_connections * 100 > 60
-      for: 2m
-      labels:
-        severity: warning
-      annotations:
-        summary: MySQL 活跃线程过多 (实例 {{ $labels.instance }})
-        description: "MySQL 实例 {{ $labels.instance }} 的活跃线程超过 60%。\n  当前值 = {{ $value }}\n  标签 = {{ $labels }}"
-
-    - alert: MysqlSlaveIoThreadNotRunning
-      expr: ( mysql_slave_status_slave_io_running and ON (instance) mysql_slave_status_master_server_id > 0 ) == 0
+    - alert: 告警！Mysql主从复制IO线程已停止运行
+      expr: (mysql_slave_status_slave_io_running and ON (instance) mysql_slave_status_master_server_id > 0 ) == 0
       for: 0m
       labels:
         severity: critical
@@ -58,7 +49,7 @@ spec:
         summary: MySQL 从库 IO 线程未运行 (实例 {{ $labels.instance }})
         description: "MySQL 从库的 IO 线程在 {{ $labels.instance }} 未运行。\n  当前值 = {{ $value }}\n  标签 = {{ $labels }}"
 
-    - alert: MysqlSlaveSqlThreadNotRunning
+    - alert: 告警！Mysql主从复制Sql线程已停止运行
       expr: ( mysql_slave_status_slave_sql_running and ON (instance) mysql_slave_status_master_server_id > 0) == 0
       for: 0m
       labels:
@@ -67,16 +58,16 @@ spec:
         summary: MySQL 从库 SQL 线程未运行 (实例 {{ $labels.instance }})
         description: "MySQL 从库的 SQL 线程在 {{ $labels.instance }} 未运行。\n  当前值 = {{ $value }}\n  标签 = {{ $labels }}"
 
-    - alert: MysqlSlaveReplicationLag
-      expr: ( (mysql_slave_status_seconds_behind_master - mysql_slave_status_sql_delay) and ON (instance) mysql_slave_status_master_server_id > 0 ) > 30
+    - alert: 告警！Mysql主从数据不同步
+      expr: mysql_slave_status_master_server_id > 0 and ON (instance) (mysql_slave_status_seconds_behind_master - mysql_slave_status_sql_delay) > 30
       for: 1m
       labels:
         severity: critical
       annotations:
-        summary: MySQL 从库复制延迟过大 (实例 {{ $labels.instance }})
-        description: "MySQL 实例 {{ $labels.instance }} 的复制延迟超过 30 秒。\n  当前值 = {{ $value }}\n  标签 = {{ $labels }}"
+        summary: MySQL 主从数据不同步 (实例 {{ $labels.instance }})
+        description: "MySQL 实例 {{ $labels.instance }} Mysql主从数据不同步>30秒。\n  当前值 = {{ $value }}\n  标签 = {{ $labels }}"
 
-    - alert: MysqlSlowQueries
+    - alert: 告警！Mysql有慢查询语句
       expr: increase(mysql_global_status_slow_queries[1m]) > 0
       for: 2m
       labels:
@@ -85,7 +76,7 @@ spec:
         summary: MySQL 慢查询 (实例 {{ $labels.instance }})
         description: "MySQL 实例 {{ $labels.instance }} 发生新的慢查询。\n  当前值 = {{ $value }}\n  标签 = {{ $labels }}"
 
-    - alert: MysqlInnodbLogWaits
+    - alert: 告警！Mysql有日志等待
       expr: rate(mysql_global_status_innodb_log_waits[15m]) > 10
       for: 0m
       labels:
@@ -94,7 +85,7 @@ spec:
         summary: MySQL InnoDB 日志等待过多 (实例 {{ $labels.instance }})
         description: "MySQL 实例 {{ $labels.instance }} 的 InnoDB 日志写入出现卡顿。\n  当前值 = {{ $value }}\n  标签 = {{ $labels }}"
 
-    - alert: MysqlRestarted
+    - alert: 告警！Mysql 实例重启
       expr: mysql_global_status_uptime < 60
       for: 0m
       labels:
