@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: mysql-mgr-exporter
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack  # 确保与 Prometheus 的配置匹配
+spec:
+  selector:
+    matchLabels:
+      app: mysql-mgr-exporter  # 匹配 mysqld-exporter 服务
+  namespaceSelector:
+    matchNames:
+    - monitoring
+  endpoints:
+  - port: mysql-mgr-exporter
+    interval: 15s
+    path: /metrics
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_service_label_instance]
+      targetLabel: instance  # 将 `instance` 标签值加入 Prometheus 指标
