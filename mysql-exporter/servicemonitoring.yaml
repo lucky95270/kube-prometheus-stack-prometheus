@@ -19,3 +19,28 @@ spec:
     relabelings:
     - sourceLabels: [__meta_kubernetes_service_label_instance]
       targetLabel: instance  # 将 `instance` 标签值加入 Prometheus 指标
+---
+# kubesphere 用法
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: mysql-mgr-cluster-exporter
+  namespace: kubesphere-monitoring-system   # ✅ 必须是这个
+  labels:
+    app.kubernetes.io/name: mysqld-exporter   # ✅ 推荐使用这种 label
+    app.kubernetes.io/instance: mysql-monitor
+    app.kubernetes.io/vendor: kubesphere
+spec:
+  selector:
+    matchLabels:
+      app: mysql-mgr-cluster                   # ✅ 必须和 mysqld-exporter 的 Service label 对齐
+  namespaceSelector:
+    matchNames:
+      - mysql-cluster                          # ✅ exporter 所在命名空间
+  endpoints:
+    - port: http-metrics
+      interval: 15s
+      path: /metrics
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_service_label_instance]
+          targetLabel: instance
