@@ -1,0 +1,77 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/name: kube-prometheus
+    app.kubernetes.io/part-of: kube-prometheus
+    prometheus: k8s
+    role: alert-rules
+    release: kube-prometheus-stack
+  name: mysql-event-alarm
+  namespace: mysql-cluster
+spec:
+  groups:
+  - name: MySQL事物告警
+    rules:
+      - alert: MySQL事务检查次数过高
+        expr: rate(mysql_perf_schema_transactions_checked_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: mysql-critical
+        annotations:
+          summary: "MySQL 事务检查次数过高 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
+          description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 过去 5 分钟内事务检查速率过高。当前值: {{  }} 次/分钟，超过阈值 100 次/分钟。"
+  
+      - alert: MySQL事务队列积压严重
+        expr: mysql_perf_schema_transactions_in_queue > 20
+        for: 5m
+        labels:
+          severity: mysql-critical
+        annotations:
+          summary: "MySQL 事务队列积压 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
+          description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 事务队列积压严重。当前队列中事务数量: {{  }}，超过阈值 20。"
+  
+      - alert: MySQL本地发起事务数过高
+        expr: rate(mysql_perf_schema_transactions_local_proposed_total[5m]) > 150
+        for: 5m
+        labels:
+          severity: mysql-critical
+        annotations:
+          summary: "MySQL 本地事务发起频繁 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
+          description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 本地事务发起速率过高。当前值: {{  }} 次/分钟，超过阈值 150 次/分钟。"
+  
+      - alert: MySQL本地事务回滚频繁
+        expr: rate(mysql_perf_schema_transactions_local_rollback_total[5m]) > 20
+        for: 5m
+        labels:
+          severity: mysql-critical
+        annotations:
+          summary: "MySQL 本地事务回滚频繁 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
+          description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 本地事务回滚次数过高。当前值: {{  }} 次/分钟，超过阈值 20 次/分钟。"
+  
+      - alert: MySQL远程事务应用速率过低
+        expr: rate(mysql_perf_schema_transactions_remote_applied_total[5m]) < 10
+        for: 5m
+        labels:
+          severity: mysql-critical
+        annotations:
+          summary: "MySQL 远程事务应用缓慢 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
+          description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 远程事务应用速率过低。当前值: {{  }} 次/分钟，低于阈值 10 次/分钟。"
+  
+      - alert: MySQL远程事务应用队列积压
+        expr: mysql_perf_schema_transactions_remote_in_applier_queue > 10
+        for: 5m
+        labels:
+          severity: mysql-critical
+        annotations:
+          summary: "MySQL 远程事务队列积压 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
+          description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 远程事务应用队列积压。当前队列中事务数量: {{  }}，超过阈值 10。"
+  
+      - alert: MySQL事务行验证次数过高
+        expr: rate(mysql_perf_schema_transactions_rows_validating_total[5m]) > 200
+        for: 5m
+        labels:
+          severity: mysql-critical
+        annotations:
+          summary: "MySQL 事务行验证频繁 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
+          description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 事务行验证次数过高。当前值: {{  }} 次/分钟，超过阈值 200 次/分钟。"

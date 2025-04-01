@@ -1,0 +1,56 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/name: kube-prometheus
+    app.kubernetes.io/part-of: kube-prometheus
+    prometheus: k8s
+    role: alert-rules
+    release: kube-prometheus-stack
+  name: mysql-pod-status-alarm
+  namespace: mysql-cluster
+spec:
+  groups:
+  - name: "MySQL POD 状态监控告警"
+    rules:
+    - alert: mysql pod 没有 running
+      expr: |
+        sum by (namespace, pod, node, pod_ip, container) (
+          max by(namespace, pod) (
+            kube_pod_status_phase{job="kube-state-metrics", namespace="mysql-cluster", phase="Running"}
+          )
+        ) * on(namespace, pod)
+        group_left(node, pod_ip, container)
+        kube_pod_info * on(namespace, pod)
+        group_left(owner_kind, owner_name)
+        kube_pod_owner > 0 == 0
+      for: 5m
+      labels:
+        severity: mysql-critical
+      annotations:
+        summary: "Pod {{ .pod }} in namespace {{ .namespace }} is not running"
+        description: "The Pod {{ .pod }} in namespace {{ .namespace }} is not in Running state for more than 5 minutes."
+
+    - alert: mysql pod cpu 使用率太高
+      expr: |
+        sum by (namespace, pod, container) (
+          rate(container_cpu_usage_seconds_total{namespace="mysql-cluster", pod=~".*"}[5m])
+        ) > 2
+      for: 5m
+      labels:
+        severity: mysql-critical
+      annotations:
+        summary: "Pod {{ .pod }} in namespace {{ .namespace }} is using too much CPU"
+        description: "The Pod {{ .pod }} in namespace {{ .namespace }} is using CPU more than 2 core for the last 5 minutes."
+
+    - alert: mysql pod 内存使用太高
+      expr: |
+        sum by (namespace, pod, container) (
+          container_memory_usage_bytes{namespace="mysql-cluster", pod=~".*"}
+        ) > 20 * 1024 * 1024 * 1024  # 18GB threshold
+      for: 5m
+      labels:
+        severity: mysql-critical
+      annotations:
+        summary: "Pod {{ .pod }} in namespace {{ .namespace }} is using too much memory"
+        description: "The Pod {{ .pod }} in namespace {{ .namespace }} is using more than 20GB of memory for the last 5 minutes."
