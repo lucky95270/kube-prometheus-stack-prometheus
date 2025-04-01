@@ -17,7 +17,7 @@ spec:
       expr: mysql_perf_schema_replication_group_member_info{member_state!="ONLINE"} > 0
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 组复制成员状态异常"
         description: "在命名空间 {{ .namespace }} 下，Pod {{ .pod }}（IP: {{ .instance }}）中的 MySQL 组复制成员 {{ .member_id }} 状态不为 ONLINE，当前状态为 {{ .member_state }}。"
@@ -26,7 +26,7 @@ spec:
       expr: count(mysql_perf_schema_replication_group_member_info{member_state="ONLINE"}) < 2
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 组复制活跃成员数量过少"
         description: "在命名空间 {{ .namespace }} 下，Pod {{ .pod }}（IP: {{ .instance }}）中的 MySQL 组复制集群中当前活跃（状态为 ONLINE）的成员数量少于 2 个。"
@@ -35,7 +35,7 @@ spec:
       expr: count(mysql_perf_schema_replication_group_member_info{member_role="PRIMARY"}) > 1 and mysql_global_variables_group_replication_single_primary_mode == 0
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "非单主模式下存在多个写节点"
         description: "在命名空间 {{ .namespace }} 下，Pod {{ .pod }}（IP: {{ .instance }}）中的 MySQL 组复制集群在非单主模式下，发现多个 PRIMARY 角色的成员。"   
@@ -44,7 +44,7 @@ spec:
       expr: mysql_global_variables_group_replication_flow_control_member_quota_percent < 20
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 流量控制配额不足 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 流量控制配额百分比过低。当前值: {{  }}%，低于阈值 20%。"
@@ -53,7 +53,7 @@ spec:
       expr: mysql_global_variables_group_replication_member_expel_timeout < 180
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 成员驱逐超时设置过短 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 成员驱逐超时时间设置过短。当前值: {{  }} 秒，建议至少 180 秒。"
@@ -62,7 +62,7 @@ spec:
       expr: mysql_global_variables_group_replication_member_weight == 0
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 成员权重为0 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 成员权重设置为0，将不会在选举中成为主节点。当前值: {{  }}。"
@@ -80,7 +80,7 @@ spec:
       expr: mysql_global_variables_group_replication_auto_increment_increment > 10
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 自增步长设置过大 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 自增步长设置过大。当前值: {{  }}，超过建议值 10。"
@@ -89,7 +89,7 @@ spec:
       expr: mysql_global_variables_group_replication_autorejoin_tries < 3
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 自动重连尝试次数不足 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 自动重连尝试次数设置过少。当前值: {{  }} 次，建议至少 3 次。"
@@ -98,7 +98,7 @@ spec:
       expr: mysql_global_variables_group_replication_components_stop_timeout < 60
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 组件停止超时设置过短 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 组件停止超时时间设置过短。当前值: {{  }} 秒，建议至少 60 秒。"
@@ -107,7 +107,7 @@ spec:
       expr: mysql_global_variables_group_replication_compression_threshold < 1024
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 消息压缩阈值过低 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 消息压缩阈值设置过低。当前值: {{  }} 字节，低于建议值 1KB。"
@@ -116,7 +116,7 @@ spec:
       expr: mysql_global_variables_group_replication_flow_control_applier_threshold < 10
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 应用器流量控制阈值过低 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 应用器流量控制阈值设置过低。当前值: {{  }}，低于建议值 10。"
@@ -125,7 +125,7 @@ spec:
       expr: mysql_global_variables_group_replication_flow_control_certifier_threshold < 10
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 认证器流量控制阈值过低 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 认证器流量控制阈值设置过低。当前值: {{  }}，低于建议值 10。"
@@ -134,7 +134,7 @@ spec:
       expr: mysql_global_variables_group_replication_flow_control_hold_percent < 10
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 流量控制保留比例过低 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 流量控制保留百分比设置过低。当前值: {{  }}%，低于建议值 10%。"
@@ -143,7 +143,7 @@ spec:
       expr: mysql_global_variables_group_replication_flow_control_max_quota < 100
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 流量控制最大配额不足 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 流量控制最大配额设置过低。当前值: {{  }}，低于建议值 100。"
@@ -152,7 +152,7 @@ spec:
       expr: mysql_global_variables_group_replication_flow_control_min_quota < 10
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 流量控制最小配额不足 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 流量控制最小配额设置过低。当前值: {{  }}，低于建议值 10。"
@@ -161,7 +161,7 @@ spec:
       expr: mysql_global_variables_group_replication_flow_control_min_recovery_quota < 10
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 恢复期间流量控制配额不足 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 恢复期间流量控制最小配额设置过低。当前值: {{  }}，低于建议值 10。"
@@ -170,7 +170,7 @@ spec:
       expr: mysql_global_variables_group_replication_flow_control_period < 1
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 流量控制调整周期过短 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 流量控制周期设置过短。当前值: {{  }} 秒，建议至少 1 秒。"
@@ -179,7 +179,7 @@ spec:
       expr: mysql_global_variables_group_replication_flow_control_release_percent < 10
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 流量控制释放比例过低 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 流量控制释放百分比设置过低。当前值: {{  }}%，低于建议值 10%。"
@@ -188,7 +188,7 @@ spec:
       expr: mysql_global_variables_group_replication_gtid_assignment_block_size > 1000000
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL GTID分配块大小过大 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) GTID分配块大小设置过大。当前值: {{  }}，超过建议值 1000000。"
@@ -206,7 +206,7 @@ spec:
       expr: mysql_global_variables_group_replication_poll_spin_loops > 1000
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 轮询自旋次数设置过高 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 轮询自旋次数设置过高。当前值: {{  }} 次，超过建议值 1000 次。"
@@ -215,7 +215,7 @@ spec:
       expr: mysql_global_variables_group_replication_recovery_get_public_key == 0
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 恢复公钥获取禁用 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 恢复时不获取公钥。当前设置值: {{  }} (0表示禁用)，可能存在安全风险。"
@@ -224,7 +224,7 @@ spec:
       expr: mysql_global_variables_group_replication_recovery_reconnect_interval > 60
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 恢复重连间隔过长 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 恢复重连间隔设置过长。当前值: {{  }} 秒，超过建议值 60 秒。"
@@ -233,7 +233,7 @@ spec:
       expr: mysql_global_variables_group_replication_recovery_retry_count < 3
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 恢复重试次数不足 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 恢复重试次数设置过少。当前值: {{  }} 次，建议至少 3 次。"
@@ -242,7 +242,7 @@ spec:
       expr: mysql_global_variables_group_replication_recovery_ssl_verify_server_cert == 0
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 恢复证书验证禁用 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 恢复时不验证服务器证书。当前设置值: {{  }} (0表示禁用)，存在安全风险。"
@@ -251,7 +251,7 @@ spec:
       expr: mysql_global_variables_group_replication_recovery_use_ssl == 0
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 恢复SSL加密禁用 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 恢复时不使用SSL加密。当前设置值: {{  }} (0表示禁用)，数据传输不安全。"
@@ -260,7 +260,7 @@ spec:
       expr: mysql_global_variables_group_replication_recovery_zstd_compression_level < 3
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 恢复压缩级别过低 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 恢复Zstd压缩级别设置过低。当前值: {{  }}，低于建议值 3。"
@@ -287,7 +287,7 @@ spec:
       expr: mysql_global_variables_group_replication_unreachable_majority_timeout < 180
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "MySQL 多数成员不可达超时设置过短 (命名空间: {{ .namespace }}, Pod: {{ .pod }}, IP: {{ .instance }})"
         description: "命名空间 {{ .namespace }} 下的 MySQL Pod {{ .pod }} (IP: {{ .instance }}) 多数成员不可达超时时间设置过短。当前值: {{  }} 秒，建议至少 180 秒。"

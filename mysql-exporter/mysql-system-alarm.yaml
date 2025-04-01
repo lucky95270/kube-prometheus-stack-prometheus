@@ -27,32 +27,10 @@ spec:
         ) > 80
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "{{.nodename}} CPU使用率过高 ({{.instance}})"
-        description: |
-          CPU使用率已达 {{ | printf "%.1f"}}%
-          请检查: top - 19:55:51 up 330 days,  8:39,  2 users,  load average: 0.00, 0.03, 0.03
-Tasks: 109 total,   1 running, 108 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  3.2 us,  0.0 sy,  0.0 ni, 96.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-MiB Mem :   1890.1 total,     84.2 free,    283.9 used,   1521.9 buff/cache
-MiB Swap:      0.0 total,      0.0 free,      0.0 used.   1420.8 avail Mem 
-
-    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
-2405656 root      20   0  686260  17476  13660 S   6.7   0.9   1:22.49 aliyun-service
-2446446 root      20   0   11716   3700   3244 R   6.7   0.2   0:00.01 top
-      1 root      20   0  169364   9564   5340 S   0.0   0.5  82:06.09 systemd
-      2 root      20   0       0      0      0 S   0.0   0.0   0:05.56 kthreadd
-      3 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 rcu_gp
-      4 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 rcu_par_gp
-      6 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker/0:0H-kblockd
-      8 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 mm_percpu_wq
-      9 root      20   0       0      0      0 S   0.0   0.0   6:38.57 ksoftirqd/0
-     10 root      20   0       0      0      0 I   0.0   0.0 248:13.20 rcu_sched
-     11 root      rt   0       0      0      0 S   0.0   0.0   1:19.34 migration/0
-     12 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_inject/0
-     14 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/0
-
+        description: 'CPU使用率已达 {{ | printf "%.1f" }}%'
     # -------------------------------
     # 内存使用率过高告警（超过90%持续5分钟）
     # -------------------------------
@@ -69,7 +47,7 @@ MiB Swap:      0.0 total,      0.0 free,      0.0 used.   1420.8 avail Mem
         ) * 100 > 90
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "{{.nodename}} 内存使用率过高"
         description: '内存使用率: {{ | printf "%.1f"}}%,目前已经大于90%'
@@ -89,7 +67,7 @@ MiB Swap:      0.0 total,      0.0 free,      0.0 used.   1420.8 avail Mem
         ) > 85
       for: 1h
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "{{.nodename}} 根分区空间不足"
         description: '磁盘使用率: {{ | printf "%.1f"}}%,目前已经大于85%'
@@ -151,7 +129,7 @@ MiB Swap:      0.0 total,      0.0 free,      0.0 used.   1420.8 avail Mem
         node_uname_info{nodename=~".*mysql.*"} > 1
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "{{.nodename}} bond0丢包率过高"
         description: |
@@ -172,7 +150,7 @@ MiB Swap:      0.0 total,      0.0 free,      0.0 used.   1420.8 avail Mem
         ) > 600  # 阈值设为600Mbps（根据实际带宽调整）
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "{{.nodename}} 网络带宽使用过高"
         description: ' 网卡 bond0 接收带宽: {{  | printf "%.1f" }} Mbps'
@@ -189,7 +167,7 @@ MiB Swap:      0.0 total,      0.0 free,      0.0 used.   1420.8 avail Mem
         ) > 600
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "{{.nodename}} 网络发送带宽过高"
         description: '发送带宽: {{  | printf "%.1f" }} Mbps'

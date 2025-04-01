@@ -17,7 +17,7 @@ spec:
       expr: mysql_up == 0
       for: 1m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "实例 {{ .instance }} MySQL服务已宕机"
         description: "命名空间: {{ .namespace }}，Pod: {{ .pod }}，IP: {{ .instance }}。MySQL数据库服务不可用，需要立即处理！"
@@ -26,7 +26,7 @@ spec:
       expr: mysql_global_status_innodb_num_open_files > (mysql_global_variables_open_files_limit) * 0.75
       for: 1m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "实例 {{ .instance }} 打开文件数过高"
         description: "命名空间: {{ .namespace }}，Pod: {{ .pod }}，IP: {{ .instance }}。当前打开文件数 ({{  }}) 超过 open_files_limit 的75%，请考虑增加 open_files_limit。"
@@ -35,7 +35,7 @@ spec:
       expr: mysql_global_variables_read_buffer_size > mysql_global_variables_slave_max_allowed_packet
       for: 1m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "实例 {{ .instance }} 读取缓冲区配置异常"
         description: "命名空间: {{ .namespace }}，Pod: {{ .pod }}，IP: {{ .instance }}。read_buffer_size 超过 max_allowed_packet，可能导致复制中断。当前值: {{  }}"
@@ -53,7 +53,7 @@ spec:
       expr: mysql_global_variables_thread_stack < 196608
       for: 1m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "实例 {{ .instance }} 线程栈大小不足"
         description: "命名空间: {{ .namespace }}，Pod: {{ .pod }}，IP: {{ .instance }}。线程栈大小过小，可能导致存储过程执行失败。当前值: {{  }}"
@@ -62,7 +62,7 @@ spec:
       expr: mysql_global_status_max_used_connections > mysql_global_variables_max_connections * 0.8
       for: 1m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "实例 {{ .instance }} 连接数使用超过阈值"
         description: "命名空间: {{ .namespace }}，Pod: {{ .pod }}，IP: {{ .instance }}。连接数超过最大值的80%，当前值: {{  }}"
@@ -80,7 +80,7 @@ spec:
       expr: mysql_global_variables_innodb_log_file_size < 16777216
       for: 1m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "实例 {{ .instance }} InnoDB日志文件配置过小"
         description: "命名空间: {{ .namespace }}，Pod: {{ .pod }}，IP: {{ .instance }}。InnoDB日志文件太小，可能影响性能，当前值: {{  }}"
@@ -89,7 +89,7 @@ spec:
       expr: mysql_global_variables_innodb_flush_log_at_trx_commit != 1
       for: 1m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "实例 {{ .instance }} 事务日志刷盘配置异常"
         description: "命名空间: {{ .namespace }}，Pod: {{ .pod }}，IP: {{ .instance }}。该参数不为1，可能在断电时造成数据丢失，当前值: {{  }}"
@@ -98,7 +98,7 @@ spec:
       expr: mysql_global_status_open_table_definitions > mysql_global_variables_table_definition_cache
       for: 1m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "实例 {{ .instance }} 表定义缓存不足"
         description: "命名空间: {{ .namespace }}，Pod: {{ .pod }}，IP: {{ .instance }}。表定义缓存不足，当前值: {{  }}"
@@ -107,7 +107,7 @@ spec:
       expr: mysql_global_status_open_tables > mysql_global_variables_table_open_cache * 99/100
       for: 1m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "实例 {{ .instance }} 表打开缓存不足"
         description: "命名空间: {{ .namespace }}，Pod: {{ .pod }}，IP: {{ .instance }}。表缓存不足，当前值: {{  }}"
@@ -116,7 +116,7 @@ spec:
       expr: mysql_global_variables_thread_stack < 262144
       for: 1m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "实例 {{ .instance }} 线程栈配置预警"
         description: "命名空间: {{ .namespace }}，Pod: {{ .pod }}，IP: {{ .instance }}。线程栈大小可能不足，当前值: {{  }}"
@@ -125,7 +125,7 @@ spec:
       expr: mysql_global_variables_innodb_buffer_pool_instances == 1
       for: 1m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "实例 {{ .instance }} 缓冲池实例数不足"
         description: "命名空间: {{ .namespace }}，Pod: {{ .pod }}，IP: {{ .instance }}。建议根据内存及核心数配置多个缓冲池实例。当前值: {{  }}"
@@ -134,7 +134,7 @@ spec:
       expr: mysql_global_variables_log_bin != 1
       for: 1m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "实例 {{ .instance }} 未启用二进制日志"
         description: "命名空间: {{ .namespace }}，Pod: {{ .pod }}，IP: {{ .instance }}。未启用 binlog，会导致无法进行时间点恢复（PiTR）"

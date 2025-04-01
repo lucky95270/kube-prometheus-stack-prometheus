@@ -26,7 +26,7 @@ spec:
         kube_pod_owner > 0 == 0
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "Pod {{ .pod }} in namespace {{ .namespace }} is not running"
         description: "The Pod {{ .pod }} in namespace {{ .namespace }} is not in Running state for more than 5 minutes."
@@ -38,7 +38,7 @@ spec:
         ) > 2
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "Pod {{ .pod }} in namespace {{ .namespace }} is using too much CPU"
         description: "The Pod {{ .pod }} in namespace {{ .namespace }} is using CPU more than 2 core for the last 5 minutes."
@@ -50,7 +50,7 @@ spec:
         ) > 20 * 1024 * 1024 * 1024  # 18GB threshold
       for: 5m
       labels:
-        severity: mysql-critical
+        severity: critical
       annotations:
         summary: "Pod {{ .pod }} in namespace {{ .namespace }} is using too much memory"
         description: "The Pod {{ .pod }} in namespace {{ .namespace }} is using more than 20GB of memory for the last 5 minutes."
