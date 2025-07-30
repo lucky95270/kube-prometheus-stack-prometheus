@@ -377,7 +377,11 @@ kubeApiServer:
         component: apiserver
         provider: kubernetes
     metricRelabelings: []
-    relabelings: []
+    # 静态自定义指标 lables
+    relabelings:
+      - targetLabel: origin_prometheus
+        replacement: "智航平台云端生产环境"
+        action: replace
 kubelet:
   enabled: true
   namespace: kube-system
@@ -851,7 +855,12 @@ prometheus:
               storage: 1Ti
     volumes: []
     volumeMounts: []
-    additionalScrapeConfigs: []
+    # 附加配置，比如添加静态抓取配置
+    additionalScrapeConfigs:
+      - job_name: "kafka_jmx"
+        metrics_path: /metrics
+        static_configs:
+          - targets: ['192.168.233.117:9990', '192.168.233.118:9990', '192.168.233.119:9990', '192.168.233.124:9990', '192.168.233.133:9990']
     additionalScrapeConfigsSecret: {}
     additionalPrometheusSecretsAnnotations: {}
     additionalAlertManagerConfigs: []
